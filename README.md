@@ -2,33 +2,6 @@
 
 > 基于 Golang + Gin + GORM 2.0 + Casbin 2.0 + Wire DI 的轻量级、灵活、优雅且功能齐全的 RBAC 脚手架。
 
-[English](README_EN.md) | 中文
-
-[![LICENSE](https://img.shields.io/github/license/LyricTian/gin-admin.svg)](https://github.com/LyricTian/gin-admin/blob/main/LICENSE)
-[![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://golang.org/)
-[![Go Report Card](https://goreportcard.com/badge/github.com/LyricTian/gin-admin)](https://goreportcard.com/report/github.com/LyricTian/gin-admin)
-[![GitHub release](https://img.shields.io/github/tag/LyricTian/gin-admin.svg?label=release)](https://github.com/LyricTian/gin-admin/releases)
-[![GitHub release date](https://img.shields.io/github/release-date/LyricTian/gin-admin.svg)](https://github.com/LyricTian/gin-admin/releases)
-[![GoDoc](https://img.shields.io/badge/Godoc-reference-blue.svg)](https://godoc.org/github.com/LyricTian/gin-admin)
-
-## 功能特性
-
-- :scroll: 优雅实现 `RESTful API`，采用接口化编程范式，让您的 API 设计更加专业规范
-- :house: 采用清晰简洁的模块化架构，让代码结构一目了然，维护升级更轻松自如
-- :rocket: 基于高性能 `GIN` 框架，集成丰富实用的中间件（身份认证、跨域、日志、限流、链路追踪、权限控制、容错、压缩等），助您快速构建企业级应用
-- :closed_lock_with_key: 集成业界领先的 `Casbin` 权限框架，灵活精准的 RBAC 权限控制让安全防护固若金汤
-- :page_facing_up: 基于功能强大的 `GORM 2.0` ORM 框架，优雅处理数据库操作，大幅提升开发效率
-- :electric_plug: 创新采用 `WIRE` 依赖注入，革命性地简化模块依赖关系，让代码更加优雅解耦
-- :memo: 基于高性能 `Zap` 日志框架，配合 Context 链路追踪，让系统运行状态清晰透明，问题排查无所遁形
-- :key: 整合久经考验的 `JWT` 认证机制，让用户身份验证更加安全可靠
-- :microscope: 自动集成 `Swagger` 接口文档，API 文档实时更新，开发调试更轻松 - [在线体验](https://demo.ginadmin.top/swagger/index.html)
-- :wrench: 完善的单元测试体系，基于 `testify` 框架保障系统质量，让 bug 无处藏身
-- :100: 采用无状态设计，支持水平扩展，搭配 Redis 实现动态权限管理，让您的系统轻松应对高并发
-- :hammer: 开发者福音！配套强大的脚手架工具 [gin-admin-cli](https://github.com/gin-admin/gin-admin-cli)，让您的开发工作事半功倍
-
-![demo](./demo.png)
-![swagger](./swagger.png)
-
 ## 前端项目
 
 - [基于 Ant Design React 实现的前端项目](https://github.com/gin-admin/gin-admin-frontend)
@@ -69,12 +42,6 @@ go run main.go start
 make build
 # or
 go build -ldflags "-w -s -X main.VERSION=v1.0.0" -o testapp
-```
-
-### 生成 Docker 镜像
-
-```bash
-docker build -f ./Dockerfile -t testapp:v1.0.0 .
 ```
 
 ### 代码生成
@@ -232,31 +199,3 @@ wire gen ./internal/wirex
 ├── go.sum
 └── main.go                         (入口文件)
 ```
-
-## 合作交流 :beers:
-
-### 微信
-
-> 扫码加微信群
-
-![wechat](./wechat.jpg)
-
-### QQ
-
-![qq](./qqgroup.jpg)
-
-## License
-
-Copyright (c) 2024 Lyric
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
