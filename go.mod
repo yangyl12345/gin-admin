@@ -41,7 +41,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.4.7
 	gorm.io/driver/postgres v1.5.0
-	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gorm v1.24.7-0.20230306060331-85eaf9eeda11
 	gorm.io/plugin/dbresolver v1.4.1
 )
@@ -94,7 +93,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
-	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect

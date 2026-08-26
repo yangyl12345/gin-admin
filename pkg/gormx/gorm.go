@@ -3,8 +3,6 @@ package gormx
 import (
 	"database/sql"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -12,7 +10,6 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
@@ -20,7 +17,7 @@ import (
 )
 
 type ResolverConfig struct {
-	DBType   string // mysql/postgres/sqlite3
+	DBType   string // mysql/postgres
 	Sources  []string
 	Replicas []string
 	Tables   []string
@@ -29,7 +26,7 @@ type ResolverConfig struct {
 type Config struct {
 	Debug        bool
 	PrepareStmt  bool
-	DBType       string // mysql/postgres/sqlite3
+	DBType       string // mysql/postgres
 	DSN          string
 	MaxLifetime  int
 	MaxIdleTime  int
@@ -50,9 +47,6 @@ func New(cfg Config) (*gorm.DB, error) {
 		dialector = mysql.Open(cfg.DSN)
 	case "postgres":
 		dialector = postgres.Open(cfg.DSN)
-	case "sqlite3":
-		_ = os.MkdirAll(filepath.Dir(cfg.DSN), os.ModePerm)
-		dialector = sqlite.Open(cfg.DSN)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", cfg.DBType)
 	}
@@ -86,22 +80,14 @@ func New(cfg Config) (*gorm.DB, error) {
 				open = mysql.Open
 			case "postgres":
 				open = postgres.Open
-			case "sqlite3":
-				open = sqlite.Open
 			default:
 				continue
 			}
 
 			for _, replica := range r.Replicas {
-				if dbType == "sqlite3" {
-					_ = os.MkdirAll(filepath.Dir(cfg.DSN), os.ModePerm)
-				}
 				resolverCfg.Replicas = append(resolverCfg.Replicas, open(replica))
 			}
 			for _, source := range r.Sources {
-				if dbType == "sqlite3" {
-					_ = os.MkdirAll(filepath.Dir(cfg.DSN), os.ModePerm)
-				}
 				resolverCfg.Sources = append(resolverCfg.Sources, open(source))
 			}
 			tables := stringSliceToInterfaceSlice(r.Tables)

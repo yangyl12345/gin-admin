@@ -44,11 +44,9 @@ DB = 1
 
 [Storage.DB]
 Debug = true
-Type = "mysql" # sqlite3/mysql/postgres
+Type = "mysql" # mysql/postgres
 # MySQL DSN
 DSN = "root:123456@tcp(127.0.0.1:3306)/ginadmin?charset=utf8mb4&parseTime=True&loc=Local"
-# SQLite3 DSN
-# DSN = "data/ginadmin.db"
 # PostgreSQL DSN
 # DSN = "host=db user=postgres password=123456 dbname=ginadmin port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 MaxLifetime = 86400

@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/LyricTian/gin-admin/v10/internal/config"
 	"github.com/LyricTian/gin-admin/v10/internal/wirex"
 	"github.com/gavv/httpexpect/v2"
 	"github.com/gin-gonic/gin"
+	sdmysql "github.com/go-sql-driver/mysql"
 )
 
 const (
@@ -23,14 +25,20 @@ var (
 )
 
 func init() {
-	config.MustLoad("")
+	_, sourceFile, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("failed to locate test source directory")
+	}
+	repoRoot := filepath.Dir(filepath.Dir(sourceFile))
+	config.MustLoad(filepath.Join(repoRoot, "configs"), "dev")
 
-	// Tests must be self-contained: RBAC loads Casbin during Init and queries
-	// the role table, so the schema has to exist before that step.
-	config.C.Storage.DB.Type = "sqlite3"
-	config.C.Storage.DB.DSN = filepath.Join(os.TempDir(), fmt.Sprintf("gin-admin-test-%d.db", os.Getpid()))
+	config.C.Storage.DB.Type = "mysql"
+	config.C.Storage.DB.DSN = testMySQLDSN()
 	config.C.Storage.DB.AutoMigrate = true
-	_ = os.Remove(config.C.Storage.DB.DSN)
+	config.C.General.WorkDir = repoRoot
+	config.C.General.MenuFile = ""
+	config.C.General.DenyOperateMenu = false
+	config.C.Middleware.Casbin.Disable = true
 
 	ctx := context.Background()
 	injector, _, err := wirex.BuildInjector(ctx)
@@ -47,6 +55,22 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func testMySQLDSN() string {
+	if dsn := os.Getenv("GIN_ADMIN_TEST_MYSQL_DSN"); dsn != "" {
+		return dsn
+	}
+
+	dsnConfig, err := sdmysql.ParseDSN(config.C.Storage.DB.DSN)
+	if err != nil {
+		panic(err)
+	}
+	if dsnConfig.DBName == "" {
+		panic("test MySQL DSN must specify a database name")
+	}
+	dsnConfig.DBName += fmt.Sprintf("_test_%d", os.Getpid())
+	return dsnConfig.FormatDSN()
 }
 
 func tester(t *testing.T) *httpexpect.Expect {

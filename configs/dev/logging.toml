@@ -18,7 +18,7 @@ MaxThread = 2
 
 [Logger.Hooks.Options]
 Debug = "false"
-DBType = "mysql" # sqlite3/mysql/postgres
+DBType = "mysql" # mysql/postgres
 DSN = "root:123456@tcp(127.0.0.1:3306)/ginadmin?charset=utf8mb4&parseTime=True&loc=Local"
 MaxOpenConns = "16"
 MaxIdleConns = "4"
