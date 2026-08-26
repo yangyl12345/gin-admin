@@ -2,8 +2,10 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/LyricTian/gin-admin/v10/internal/config"
@@ -23,7 +25,13 @@ var (
 func init() {
 	config.MustLoad("")
 
-	_ = os.RemoveAll(config.C.Storage.DB.DSN)
+	// Tests must be self-contained: RBAC loads Casbin during Init and queries
+	// the role table, so the schema has to exist before that step.
+	config.C.Storage.DB.Type = "sqlite3"
+	config.C.Storage.DB.DSN = filepath.Join(os.TempDir(), fmt.Sprintf("gin-admin-test-%d.db", os.Getpid()))
+	config.C.Storage.DB.AutoMigrate = true
+	_ = os.Remove(config.C.Storage.DB.DSN)
+
 	ctx := context.Background()
 	injector, _, err := wirex.BuildInjector(ctx)
 	if err != nil {

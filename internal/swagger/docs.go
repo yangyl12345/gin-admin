@@ -1066,6 +1066,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/shop/status": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Get shop module status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.Status"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/users": {
             "get": {
                 "security": [
@@ -1794,6 +1833,17 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "description": "Update time",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.Status": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }

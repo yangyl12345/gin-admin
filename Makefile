@@ -35,8 +35,6 @@ swagger:
 	@swag init --parseDependency --generalInfo ./main.go --output ./internal/swagger
 
 # https://github.com/OpenAPITools/openapi-generator
-openapi:
-	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate -i /local/internal/swagger/swagger.yaml -g openapi -o /local/internal/swagger/v3
 
 clean:
 	rm -rf data $(SERVER_BIN)

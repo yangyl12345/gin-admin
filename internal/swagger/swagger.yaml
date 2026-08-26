@@ -287,6 +287,13 @@ definitions:
         description: Update time
         type: string
     type: object
+  schema.Status:
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+    type: object
   schema.UpdateCurrentUser:
     properties:
       email:
@@ -1067,6 +1074,27 @@ paths:
       summary: Update role record by ID
       tags:
       - RoleAPI
+  /api/v1/shop/status:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Status'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get shop module status
+      tags:
+      - ShopAPI
   /api/v1/users:
     get:
       parameters:
