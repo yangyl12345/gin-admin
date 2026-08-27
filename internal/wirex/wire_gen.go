@@ -9,13 +9,12 @@ package wirex
 import (
 	"context"
 	"github.com/LyricTian/gin-admin/v10/internal/mods"
-	"github.com/LyricTian/gin-admin/v10/internal/mods/rbac"
-	"github.com/LyricTian/gin-admin/v10/internal/mods/rbac/api"
-	"github.com/LyricTian/gin-admin/v10/internal/mods/rbac/biz"
-	"github.com/LyricTian/gin-admin/v10/internal/mods/rbac/dal"
 	"github.com/LyricTian/gin-admin/v10/internal/mods/shop"
-	api2 "github.com/LyricTian/gin-admin/v10/internal/mods/shop/api"
-	biz2 "github.com/LyricTian/gin-admin/v10/internal/mods/shop/biz"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/api"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/biz"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/dal"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/jd"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/notify"
 	"github.com/LyricTian/gin-admin/v10/pkg/util"
 )
 
@@ -26,122 +25,37 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	cacher, cleanup2, err := InitCacher(ctx)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
+	status := biz.NewStatus()
+	apiStatus := &api.Status{
+		StatusBIZ: status,
 	}
-	auther, cleanup3, err := InitAuth(ctx)
-	if err != nil {
-		cleanup2()
-		cleanup()
-		return nil, nil, err
+	store := &dal.Store{
+		DB: db,
 	}
+	client := jd.NewChromeClient()
+	notifier := notify.NewServerChan()
 	trans := &util.Trans{
 		DB: db,
 	}
-	menu := &dal.Menu{
-		DB: db,
+	service := biz.NewService(store, client, notifier, trans)
+	management := &api.Management{
+		Service: service,
 	}
-	menuResource := &dal.MenuResource{
-		DB: db,
-	}
-	roleMenu := &dal.RoleMenu{
-		DB: db,
-	}
-	bizMenu := &biz.Menu{
-		Cache:           cacher,
-		Trans:           trans,
-		MenuDAL:         menu,
-		MenuResourceDAL: menuResource,
-		RoleMenuDAL:     roleMenu,
-	}
-	apiMenu := &api.Menu{
-		MenuBIZ: bizMenu,
-	}
-	role := &dal.Role{
-		DB: db,
-	}
-	userRole := &dal.UserRole{
-		DB: db,
-	}
-	bizRole := &biz.Role{
-		Cache:       cacher,
-		Trans:       trans,
-		RoleDAL:     role,
-		RoleMenuDAL: roleMenu,
-		UserRoleDAL: userRole,
-	}
-	apiRole := &api.Role{
-		RoleBIZ: bizRole,
-	}
-	user := &dal.User{
-		DB: db,
-	}
-	bizUser := &biz.User{
-		Cache:       cacher,
-		Trans:       trans,
-		UserDAL:     user,
-		UserRoleDAL: userRole,
-	}
-	apiUser := &api.User{
-		UserBIZ: bizUser,
-	}
-	login := &biz.Login{
-		Cache:       cacher,
-		Auth:        auther,
-		UserDAL:     user,
-		UserRoleDAL: userRole,
-		MenuDAL:     menu,
-		UserBIZ:     bizUser,
-	}
-	apiLogin := &api.Login{
-		LoginBIZ: login,
-	}
-	logger := &dal.Logger{
-		DB: db,
-	}
-	bizLogger := &biz.Logger{
-		LoggerDAL: logger,
-	}
-	apiLogger := &api.Logger{
-		LoggerBIZ: bizLogger,
-	}
-	casbinx := &rbac.Casbinx{
-		Cache:           cacher,
-		MenuDAL:         menu,
-		MenuResourceDAL: menuResource,
-		RoleDAL:         role,
-	}
-	rbacRBAC := &rbac.RBAC{
-		DB:        db,
-		MenuAPI:   apiMenu,
-		RoleAPI:   apiRole,
-		UserAPI:   apiUser,
-		LoginAPI:  apiLogin,
-		LoggerAPI: apiLogger,
-		Casbinx:   casbinx,
-	}
-	status := biz2.NewStatus()
-	apiStatus := &api2.Status{
-		StatusBIZ: status,
-	}
+	scheduler := shop.NewScheduler(service)
 	shopShop := &shop.Shop{
-		StatusAPI: apiStatus,
+		DB:            db,
+		StatusAPI:     apiStatus,
+		ManagementAPI: management,
+		Scheduler:     scheduler,
 	}
 	modsMods := &mods.Mods{
-		RBAC: rbacRBAC,
 		Shop: shopShop,
 	}
 	injector := &Injector{
-		DB:    db,
-		Cache: cacher,
-		Auth:  auther,
-		M:     modsMods,
+		DB: db,
+		M:  modsMods,
 	}
 	return injector, func() {
-		cleanup3()
-		cleanup2()
 		cleanup()
 	}, nil
 }

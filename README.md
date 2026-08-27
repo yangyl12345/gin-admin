@@ -1,201 +1,117 @@
-# [Gin](https://github.com/gin-gonic/gin)-Admin
+# 京东自营价格监控服务
 
-> 基于 Golang + Gin + GORM 2.0 + Casbin 2.0 + Wire DI 的轻量级、灵活、优雅且功能齐全的 RBAC 脚手架。
+这是一个基于 Go、Gin、GORM、Wire、Chromedp 和 Cron 的个人京东自营商品价格监控后端。
 
-## 前端项目
+服务只保留 `/api/v1/shop` 领域，不包含用户、角色、菜单、登录、JWT、验证码或 Casbin。所有 Shop API 均不需要认证，请只在可信内网或本机使用，不要直接暴露到公网。
 
-- [基于 Ant Design React 实现的前端项目](https://github.com/gin-admin/gin-admin-frontend)
-- [基于 Vue.js 实现的前端项目](https://github.com/gin-admin/gin-admin-vue)
+## 环境要求
 
-## 安装依赖工具
+- Go 1.19+
+- MySQL 或 PostgreSQL
+- Google Chrome（macOS 默认路径为 `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`）
+- 可选：Server酱 SendKey，用于发送微信通知
 
-- [Go](https://golang.org/) 1.19+
-- [Wire](github.com/google/wire) `go install github.com/google/wire/cmd/wire@latest`
-- [Swag](github.com/swaggo/swag) `go install github.com/swaggo/swag/cmd/swag@latest`
-- [GIN-ADMIN-CLI](https://github.com/gin-admin/gin-admin-cli) `go install github.com/gin-admin/gin-admin-cli/v10@latest`
+## 首次运行
 
-## 快速开始
-
-### 创建新的项目
-
-> 可通过 `gin-admin-cli help new` 查看命令的详细说明
+先配置 `configs/dev/server.toml` 中的数据库连接。服务停止时，使用独立 Chrome Profile 人工登录京东：
 
 ```bash
-gin-admin-cli new -d ~/go/src --name testapp --desc 'A test API service based on golang.' --pkg 'github.com/xxx/testapp' --git-url https://gitee.com/lyric/gin-admin.git
+go run main.go jd-login -d configs -c dev
 ```
 
-### 启动服务
+程序不会读取或保存账号密码、短信码、验证码或二维码内容，也不会绕过京东验证。
 
-> 通过更改 `configs/dev/server.toml` 配置文件中的 `MenuFile = "menu_cn.json"` 可以切换到中文菜单
+如果需要微信通知，在启动服务的同一个终端设置：
 
 ```bash
-cd ~/go/src/testapp
-
+export SERVERCHAN_SEND_KEY="你的 SendKey"
 make start
-# or
-go run main.go start
 ```
 
-### 编译服务
+SendKey 只从环境变量读取，不写入 TOML、数据库、Swagger 或日志。缺少 SendKey 不影响价格采集，待发送告警会保留。
 
-```bash
-make build
-# or
-go build -ldflags "-w -s -X main.VERSION=v1.0.0" -o testapp
+Swagger 默认地址：
+
+```text
+http://127.0.0.1:8040/swagger/index.html
 ```
 
-### 代码生成
+健康检查：
 
-> 可通过 `gin-admin-cli help gen` 查看命令的详细说明
-
-#### 准备配置文件 `dictionary.yaml`
-
-```yaml
-- name: Dictionary
-  comment: 字典管理
-  disable_pagination: true
-  fill_gorm_commit: true
-  fill_router_prefix: true
-  tpl_type: "tree"
-  fields:
-    - name: Code
-      type: string
-      comment: Code of dictionary (unique for same parent)
-      gorm_tag: "size:32;"
-      form:
-        binding_tag: "required,max=32"
-    - name: Name
-      type: string
-      comment: Display name of dictionary
-      gorm_tag: "size:128;index"
-      query:
-        name: LikeName
-        in_query: true
-        form_tag: name
-        op: LIKE
-      form:
-        binding_tag: "required,max=128"
-    - name: Description
-      type: string
-      comment: Details about dictionary
-      gorm_tag: "size:1024"
-      form: {}
-    - name: Sequence
-      type: int
-      comment: Sequence for sorting
-      gorm_tag: "index;"
-      order: DESC
-      form: {}
-    - name: Status
-      type: string
-      comment: Status of dictionary (disabled, enabled)
-      gorm_tag: "size:20;index"
-      query: {}
-      form:
-        binding_tag: "required,oneof=disabled enabled"
+```text
+GET /health
 ```
 
-```bash
-gin-admin-cli gen -d . -m SYS -c dictionary.yaml
-```
+## Shop API
 
-### 删除模块
+所有接口均位于 `/api/v1/shop`，不需要 `Authorization` 请求头。
 
-> 可通过 `gin-admin-cli help remove` 查看命令的详细说明
+设置：
 
-```bash
-gin-admin-cli rm -d . -m CMS --structs Article
-```
+- `GET /settings`
+- `PUT /settings`
 
-### 生成 Swagger 文档
+分类：
 
-> 通过 [Swag](github.com/swaggo/swag) 可以自动生成 Swagger 文档
+- `GET /categories`
+- `GET /categories/:id`
+- `POST /categories`
+- `PUT /categories/:id`
+- `DELETE /categories/:id`
 
-```bash
-make swagger
-# or
-swag init --parseDependency --generalInfo ./main.go --output ./internal/swagger
-```
+商品、价格与告警：
 
-### 生成依赖注入代码
+- `GET /products`
+- `GET /products/:id`
+- `PUT /products/:id`
+- `GET /products/:id/prices`
+- `GET /alerts`
 
-> 依赖注入本身的作用是解决了各个模块间层级依赖繁琐的初始化过程，通过 [Wire](github.com/google/wire) 可以自动生成依赖注入代码，简化依赖注入的过程。
+任务、浏览器会话与通知：
+
+- `GET /jobs`
+- `POST /jobs/:type/run`
+- `GET /session`
+- `POST /notifications/test`
+- `GET /status`
+
+手工任务类型只允许 `discover`、`public-scan` 和 `checkout-sample`。
+
+## 默认调度
+
+- 分类发现：每 6 小时
+- 公开移动价扫描：每 15 分钟
+- 结算采样队列：每分钟
+- 待发送告警：每 5 分钟
+- 数据清理：每天凌晨 3 点
+
+Chrome 会话保存在已被 Git 忽略的 `data/jd-profile`。请勿把该目录复制进仓库或交给他人。结算预览固定数量为 1，使用账号默认地址，只读取订单确认页价格，不点击“提交订单”或支付入口。
+
+## 开发命令
 
 ```bash
 make wire
-# or
-wire gen ./internal/wirex
+make swagger
+go test ./internal/mods/shop/...
+go test ./test -run 'TestShop|TestRemovedAdminRoutes'
+go build ./...
 ```
 
-## 项目结构概览
+## 目录结构
 
 ```text
-├── cmd                             (命令行定义目录)
-│   ├── start.go                    (启动命令)
-│   ├── stop.go                     (停止命令)
-│   └── version.go                  (版本命令)
-├── configs
-│   ├── dev
-│   │   ├── logging.toml            (日志配置文件)
-│   │   ├── middleware.toml         (中间件配置文件)
-│   │   └── server.toml             (服务配置文件)
-│   ├── menu.json                   (初始化菜单文件)
-│   └── rbac_model.conf             (Casbin RBAC 模型配置文件)
-├── internal
-│   ├── bootstrap                   (初始化目录)
-│   │   ├── bootstrap.go            (初始化)
-│   │   ├── http.go                 (HTTP 服务)
-│   │   └── logger.go               (日志服务)
-│   ├── config                      (配置文件目录)
-│   │   ├── config.go               (配置文件初始化)
-│   │   ├── consts.go               (常量定义)
-│   │   ├── middleware.go           (中间件配置)
-│   │   └── parse.go                (配置文件解析)
-│   ├── mods
-│   │   ├── rbac                    (RBAC 模块)
-│   │   │   ├── api                 (API层)
-│   │   │   ├── biz                 (业务逻辑层)
-│   │   │   ├── dal                 (数据访问层)
-│   │   │   ├── schema              (数据模型层)
-│   │   │   ├── casbin.go           (Casbin 初始化)
-│   │   │   ├── main.go             (RBAC 模块入口)
-│   │   │   └── wire.go             (RBAC 依赖注入初始化)
-│   │   └── mods.go
-│   ├── utility
-│   │   └── prom
-│   │       └── prom.go             (Prometheus 监控，用于集成 prometheus)
-│   └── wirex                       (依赖注入目录，包含了依赖组的定义和初始化)
-│       ├── injector.go
-│       ├── wire.go
-│       └── wire_gen.go
-├── pkg                             (公共包目录)
-│   ├── cachex                      (缓存包)
-│   ├── crypto                      (加密包)
-│   │   ├── aes                     (AES加密)
-│   │   ├── hash                    (哈希加密)
-│   │   └── rand                    (随机数)
-│   ├── encoding                    (编码包)
-│   │   ├── json                    (JSON编码)
-│   │   ├── toml                    (TOML编码)
-│   │   └── yaml                    (YAML编码)
-│   ├── errors                      (错误处理包)
-│   ├── gormx                       (Gorm扩展包)
-│   ├── jwtx                        (JWT包)
-│   ├── logging                     (日志包)
-│   ├── mail                        (邮件包)
-│   ├── middleware                  (中间件包)
-│   ├── oss                         (对象存储包)
-│   ├── promx                       (Prometheus包)
-│   └── util                        (工具包)
-├── test                            (单元测试目录)
-│   ├── menu_test.go
-│   ├── role_test.go
-│   ├── test.go
-│   └── user_test.go
-├── Dockerfile
-├── Makefile
-├── README.md
-├── go.mod
-├── go.sum
-└── main.go                         (入口文件)
+cmd/                         启动、停止、版本和 jd-login 命令
+configs/dev/                 运行配置
+internal/bootstrap/          HTTP 与服务生命周期
+internal/config/             配置模型与加载
+internal/mods/shop/api/      Shop HTTP API
+internal/mods/shop/biz/      调度、价格和告警业务逻辑
+internal/mods/shop/dal/      GORM 数据访问
+internal/mods/shop/jd/       京东 Chrome 适配器
+internal/mods/shop/notify/   Server酱通知器
+internal/mods/shop/schema/   Shop 数据模型和请求/响应结构
+internal/wirex/              Wire 依赖注入
+test/                        Shop 集成测试
 ```
+
+代码删除不会自动删除已有数据库中的旧用户、角色或菜单表。如需清理旧表，请先备份数据库并单独执行经过确认的数据库迁移。

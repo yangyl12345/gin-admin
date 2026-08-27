@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"strings"
 
 	"github.com/LyricTian/gin-admin/v10/pkg/encoding/json"
 	"github.com/LyricTian/gin-admin/v10/pkg/errors"
@@ -13,25 +12,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"go.uber.org/zap"
 )
-
-// Get access token from header or query parameter
-func GetToken(c *gin.Context) string {
-	var token string
-	auth := c.GetHeader("Authorization")
-	prefix := "Bearer "
-
-	if auth != "" && strings.HasPrefix(auth, prefix) {
-		token = auth[len(prefix):]
-	} else {
-		token = auth
-	}
-
-	if token == "" {
-		token = c.Query("accessToken")
-	}
-
-	return token
-}
 
 // Get body data from context
 func GetBodyData(c *gin.Context) []byte {

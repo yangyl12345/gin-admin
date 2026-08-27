@@ -21,7 +21,8 @@ const (
 )
 
 var (
-	app *gin.Engine
+	app         *gin.Engine
+	appInjector *wirex.Injector
 )
 
 func init() {
@@ -36,9 +37,7 @@ func init() {
 	config.C.Storage.DB.DSN = testMySQLDSN()
 	config.C.Storage.DB.AutoMigrate = true
 	config.C.General.WorkDir = repoRoot
-	config.C.General.MenuFile = ""
-	config.C.General.DenyOperateMenu = false
-	config.C.Middleware.Casbin.Disable = true
+	config.C.Shop.Enable = false
 
 	ctx := context.Background()
 	injector, _, err := wirex.BuildInjector(ctx)
@@ -49,6 +48,7 @@ func init() {
 	if err := injector.M.Init(ctx); err != nil {
 		panic(err)
 	}
+	appInjector = injector
 
 	app = gin.New()
 	err = injector.M.RegisterRouters(ctx, app)

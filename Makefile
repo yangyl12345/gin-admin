@@ -26,9 +26,9 @@ build:
 build-linux:
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC="zig cc -target x86_64-linux-musl" CXX="zig c++ -target x86_64-linux-musl" CGO_CFLAGS="-D_LARGEFILE64_SOURCE" go build -ldflags "-w -s -X main.VERSION=$(RELEASE_TAG)" -o $(SERVER_BIN)_linux_amd64
 
-# go install github.com/google/wire/cmd/wire@latest
+# Pinned because older Wire releases fail with current Go toolchains.
 wire:
-	@wire gen ./internal/wirex
+	@go run github.com/google/wire/cmd/wire@v0.7.0 gen ./internal/wirex
 
 # go install github.com/swaggo/swag/cmd/swag@latest
 swagger:

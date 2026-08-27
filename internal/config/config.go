@@ -13,7 +13,7 @@ type Config struct {
 	Storage    Storage
 	Middleware Middleware
 	Util       Util
-	Dictionary Dictionary
+	Shop       Shop
 }
 
 type General struct {
@@ -23,10 +23,7 @@ type General struct {
 	PprofAddr          string
 	DisableSwagger     bool
 	DisablePrintConfig bool
-	DefaultLoginPwd    string `default:"6351623c8cef86fefabfa7da046fc619"` // MD5(abc-123)
 	WorkDir            string // From command arguments
-	MenuFile           string // From schema.Menus (JSON/YAML)
-	DenyOperateMenu    bool
 	HTTP               struct {
 		Addr            string `default:":8040"`
 		ShutdownTimeout int    `default:"10"` // seconds
@@ -36,31 +33,9 @@ type General struct {
 		CertFile        string
 		KeyFile         string
 	}
-	Root struct {
-		ID       string `default:"root"`
-		Username string `default:"admin"`
-		Password string
-		Name     string `default:"Admin"`
-	}
 }
 
 type Storage struct {
-	Cache struct {
-		Type      string `default:"memory"` // memory/badger/redis
-		Delimiter string `default:":"`      // delimiter for key
-		Memory    struct {
-			CleanupInterval int `default:"60"` // seconds
-		}
-		Badger struct {
-			Path string `default:"data/cache"`
-		}
-		Redis struct {
-			Addr     string
-			Username string
-			Password string
-			DB       int
-		}
-	}
 	DB struct {
 		Debug        bool
 		Type         string `default:"mysql"` // mysql/postgres
@@ -82,32 +57,45 @@ type Storage struct {
 }
 
 type Util struct {
-	Captcha struct {
-		Length    int    `default:"4"`
-		Width     int    `default:"400"`
-		Height    int    `default:"160"`
-		CacheType string `default:"memory"` // memory/redis
-		Redis     struct {
-			Addr      string
-			Username  string
-			Password  string
-			DB        int
-			KeyPrefix string `default:"captcha:"`
-		}
-	}
 	Prometheus struct {
 		Enable         bool
-		Port           int    `default:"9100"`
-		BasicUsername  string `default:"admin"`
-		BasicPassword  string `default:"admin"`
+		Port           int `default:"9100"`
 		LogApis        []string
 		LogMethods     []string
 		DefaultCollect bool
 	}
 }
 
-type Dictionary struct {
-	UserCacheExp int `default:"4"` // hours
+// Shop contains non-secret runtime settings for JD price monitoring.
+// SERVERCHAN_SEND_KEY is intentionally read from the environment instead of
+// this structure because Config.Print prints the loaded configuration.
+type Shop struct {
+	Enable bool `default:"true"`
+	JD     struct {
+		ChromeExecutable  string `default:"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`
+		UserDataDir       string `default:"data/jd-profile"`
+		Headless          bool   `default:"true"`
+		DebugArtifacts    bool
+		MaxProducts       int `default:"1000"`
+		PublicWorkers     int `default:"4"`
+		CheckoutBatch     int `default:"20"`
+		PublicDelayMin    int `default:"1"`  // seconds
+		PublicDelayMax    int `default:"3"`  // seconds
+		CheckoutDelayMin  int `default:"10"` // seconds
+		CheckoutDelayMax  int `default:"30"` // seconds
+		NavigationTimeout int `default:"45"` // seconds
+	}
+	Scheduler struct {
+		DiscoverSpec      string `default:"0 */6 * * *"`
+		PublicScanSpec    string `default:"*/15 * * * *"`
+		CheckoutSpec      string `default:"@every 1m"`
+		CleanupSpec       string `default:"0 3 * * *"`
+		AlertDeliverySpec string `default:"@every 5m"`
+	}
+	ServerChan struct {
+		BaseURL        string `default:"https://sctapi.ftqq.com"`
+		RequestTimeout int    `default:"10"` // seconds
+	}
 }
 
 func (c *Config) IsDebug() bool {
@@ -120,31 +108,6 @@ func (c *Config) String() string {
 		panic("Failed to marshal config: " + err.Error())
 	}
 	return string(b)
-}
-
-func (c *Config) PreLoad() {
-	if addr := c.Storage.Cache.Redis.Addr; addr != "" {
-		username := c.Storage.Cache.Redis.Username
-		password := c.Storage.Cache.Redis.Password
-		if c.Util.Captcha.CacheType == "redis" &&
-			c.Util.Captcha.Redis.Addr == "" {
-			c.Util.Captcha.Redis.Addr = addr
-			c.Util.Captcha.Redis.Username = username
-			c.Util.Captcha.Redis.Password = password
-		}
-		if c.Middleware.RateLimiter.Store.Type == "redis" &&
-			c.Middleware.RateLimiter.Store.Redis.Addr == "" {
-			c.Middleware.RateLimiter.Store.Redis.Addr = addr
-			c.Middleware.RateLimiter.Store.Redis.Username = username
-			c.Middleware.RateLimiter.Store.Redis.Password = password
-		}
-		if c.Middleware.Auth.Store.Type == "redis" &&
-			c.Middleware.Auth.Store.Redis.Addr == "" {
-			c.Middleware.Auth.Store.Redis.Addr = addr
-			c.Middleware.Auth.Store.Redis.Username = username
-			c.Middleware.Auth.Store.Redis.Password = password
-		}
-	}
 }
 
 func (c *Config) Print() {

@@ -22,8 +22,6 @@ var (
 
 const (
 	DefaultBadRequestID            = "bad_request"
-	DefaultUnauthorizedID          = "unauthorized"
-	DefaultForbiddenID             = "forbidden"
 	DefaultNotFoundID              = "not_found"
 	DefaultMethodNotAllowedID      = "method_not_allowed"
 	DefaultTooManyRequestsID       = "too_many_requests"
@@ -77,32 +75,6 @@ func BadRequest(id, format string, a ...interface{}) error {
 		Code:   http.StatusBadRequest,
 		Detail: fmt.Sprintf(format, a...),
 		Status: http.StatusText(http.StatusBadRequest),
-	}
-}
-
-// Unauthorized generates a 401 error.
-func Unauthorized(id, format string, a ...interface{}) error {
-	if id == "" {
-		id = DefaultUnauthorizedID
-	}
-	return &Error{
-		ID:     id,
-		Code:   http.StatusUnauthorized,
-		Detail: fmt.Sprintf(format, a...),
-		Status: http.StatusText(http.StatusUnauthorized),
-	}
-}
-
-// Forbidden generates a 403 error.
-func Forbidden(id, format string, a ...interface{}) error {
-	if id == "" {
-		id = DefaultForbiddenID
-	}
-	return &Error{
-		ID:     id,
-		Code:   http.StatusForbidden,
-		Detail: fmt.Sprintf(format, a...),
-		Status: http.StatusText(http.StatusForbidden),
 	}
 }
 

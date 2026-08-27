@@ -21,7 +21,6 @@ type RateLimiterConfig struct {
 	SkippedPathPrefixes []string
 	Period              int
 	MaxRequestsPerIP    int
-	MaxRequestsPerUser  int
 	StoreType           string // memory/redis
 	MemoryStoreConfig   RateLimiterMemoryConfig
 	RedisStoreConfig    RateLimiterRedisConfig
@@ -53,11 +52,7 @@ func RateLimiterWithConfig(config RateLimiterConfig) gin.HandlerFunc {
 		)
 
 		ctx := c.Request.Context()
-		if userID := util.FromUserID(ctx); userID != "" {
-			allowed, err = store.Allow(ctx, userID, time.Second*time.Duration(config.Period), config.MaxRequestsPerUser)
-		} else {
-			allowed, err = store.Allow(ctx, c.ClientIP(), time.Second*time.Duration(config.Period), config.MaxRequestsPerIP)
-		}
+		allowed, err = store.Allow(ctx, c.ClientIP(), time.Second*time.Duration(config.Period), config.MaxRequestsPerIP)
 
 		if err != nil {
 			logging.Context(ctx).Error("Rate limiter middleware error", zap.Error(err))

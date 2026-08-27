@@ -15,345 +15,12 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/captcha/id": {
+        "/api/v1/shop/alerts": {
             "get": {
                 "tags": [
-                    "LoginAPI"
+                    "ShopAPI"
                 ],
-                "summary": "Get captcha ID",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.Captcha"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/captcha/image": {
-            "get": {
-                "produces": [
-                    "image/png"
-                ],
-                "tags": [
-                    "LoginAPI"
-                ],
-                "summary": "Response captcha image",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Captcha ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Reload captcha image (reload=1)",
-                        "name": "reload",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Captcha image"
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/current/logout": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "LoginAPI"
-                ],
-                "summary": "Logout system",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/current/menus": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "LoginAPI"
-                ],
-                "summary": "Query current user menus based on the current user role",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/schema.Menu"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/current/password": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "LoginAPI"
-                ],
-                "summary": "Change current user password",
-                "parameters": [
-                    {
-                        "description": "Request body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UpdateLoginPassword"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/current/refresh-token": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "LoginAPI"
-                ],
-                "summary": "Refresh current access token",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.LoginToken"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/current/user": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "LoginAPI"
-                ],
-                "summary": "Get current user info",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.User"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "LoginAPI"
-                ],
-                "summary": "Update current user info",
-                "parameters": [
-                    {
-                        "description": "Request body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UpdateCurrentUser"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/loggers": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "LoggerAPI"
-                ],
-                "summary": "Query logger list",
+                "summary": "Query price alerts",
                 "parameters": [
                     {
                         "type": "integer",
@@ -373,32 +40,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "log level",
-                        "name": "level",
+                        "description": "product ID",
+                        "name": "productID",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "trace ID",
-                        "name": "traceID",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "user name",
-                        "name": "userName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "log tag",
-                        "name": "tag",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "log message",
-                        "name": "message",
+                        "description": "pending, sent, or failed",
+                        "name": "sendStatus",
                         "in": "query"
                     },
                     {
@@ -428,7 +77,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/schema.Logger"
+                                                "$ref": "#/definitions/schema.PriceAlert"
                                             }
                                         }
                                     }
@@ -436,57 +85,6 @@ const docTemplate = `{
                             ]
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/login": {
-            "post": {
-                "tags": [
-                    "LoginAPI"
-                ],
-                "summary": "Login system with username and password",
-                "parameters": [
-                    {
-                        "description": "Request body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.LoginForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.LoginToken"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -502,294 +100,12 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/menus": {
+        "/api/v1/shop/categories": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "tags": [
-                    "MenuAPI"
+                    "ShopAPI"
                 ],
-                "summary": "Query menu tree data",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Code path of menu (like xxx.xxx.xxx)",
-                        "name": "code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name of menu",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Whether to include menu resources",
-                        "name": "includeResources",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/schema.Menu"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "MenuAPI"
-                ],
-                "summary": "Create menu record",
-                "parameters": [
-                    {
-                        "description": "Request body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.MenuForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.Menu"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/menus/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "MenuAPI"
-                ],
-                "summary": "Get menu record by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "unique id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.Menu"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "MenuAPI"
-                ],
-                "summary": "Update menu record by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "unique id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Request body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.MenuForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "MenuAPI"
-                ],
-                "summary": "Delete menu record by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "unique id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/roles": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "RoleAPI"
-                ],
-                "summary": "Query role list",
+                "summary": "Query JD categories",
                 "parameters": [
                     {
                         "type": "integer",
@@ -809,13 +125,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Display name of role",
+                        "description": "category name",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Status of role (disabled, enabled)",
+                        "description": "enabled or disabled",
                         "name": "status",
                         "in": "query"
                     }
@@ -834,7 +150,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/schema.Role"
+                                                "$ref": "#/definitions/schema.JDCategory"
                                             }
                                         }
                                     }
@@ -842,8 +158,8 @@ const docTemplate = `{
                             ]
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/util.ResponseResult"
                         }
@@ -857,23 +173,18 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "tags": [
-                    "RoleAPI"
+                    "ShopAPI"
                 ],
-                "summary": "Create role record",
+                "summary": "Create JD category",
                 "parameters": [
                     {
-                        "description": "Request body",
+                        "description": "category",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schema.RoleForm"
+                            "$ref": "#/definitions/schema.JDCategoryForm"
                         }
                     }
                 ],
@@ -889,7 +200,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schema.Role"
+                                            "$ref": "#/definitions/schema.JDCategory"
                                         }
                                     }
                                 }
@@ -902,8 +213,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/util.ResponseResult"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/util.ResponseResult"
                         }
@@ -917,21 +228,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/roles/{id}": {
+        "/api/v1/shop/categories/{id}": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "tags": [
-                    "RoleAPI"
+                    "ShopAPI"
                 ],
-                "summary": "Get role record by ID",
+                "summary": "Get JD category",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "unique id",
+                        "description": "category ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -949,15 +255,15 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schema.Role"
+                                            "$ref": "#/definitions/schema.JDCategory"
                                         }
                                     }
                                 }
                             ]
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/util.ResponseResult"
                         }
@@ -971,30 +277,25 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "tags": [
-                    "RoleAPI"
+                    "ShopAPI"
                 ],
-                "summary": "Update role record by ID",
+                "summary": "Update JD category",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "unique id",
+                        "description": "category ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Request body",
+                        "description": "category",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schema.RoleForm"
+                            "$ref": "#/definitions/schema.JDCategoryForm"
                         }
                     }
                 ],
@@ -1011,8 +312,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/util.ResponseResult"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/util.ResponseResult"
                         }
@@ -1026,19 +333,14 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "tags": [
-                    "RoleAPI"
+                    "ShopAPI"
                 ],
-                "summary": "Delete role record by ID",
+                "summary": "Delete JD category",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "unique id",
+                        "description": "category ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1051,8 +353,557 @@ const docTemplate = `{
                             "$ref": "#/definitions/util.ResponseResult"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shop/jobs": {
+            "get": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Query shop job runs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "pagination index",
+                        "name": "current",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "pagination size",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "job status",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.JobRun"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shop/jobs/{type}/run": {
+            "post": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Trigger an asynchronous shop job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "discover, public-scan, or checkout-sample",
+                        "name": "type",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.JobRun"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shop/notifications/test": {
+            "post": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Send a ServerChan test notification",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.NotificationTestResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shop/products": {
+            "get": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Query JD products",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "pagination index",
+                        "name": "current",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "pagination size",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "JD SKU",
+                        "name": "sku",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "product name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "category ID",
+                        "name": "categoryID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "self-operated",
+                        "name": "selfOperated",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "active or paused",
+                        "name": "monitorStatus",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "active, stale, or capped",
+                        "name": "discoveryStatus",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.JDProduct"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shop/products/{id}": {
+            "get": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Get JD product details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ProductDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Pause or resume JD product monitoring",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "monitor status",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.JDProductForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shop/products/{id}/prices": {
+            "get": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Query JD product price history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "pagination index",
+                        "name": "current",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "pagination size",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "public or checkout",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "start time",
+                        "name": "startTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "end time",
+                        "name": "endTime",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.PriceSample"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shop/session": {
+            "get": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Get JD browser session status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.SessionStatus"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/shop/settings": {
+            "get": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Get shop monitoring settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ShopSetting"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "ShopAPI"
+                ],
+                "summary": "Update shop monitoring settings",
+                "parameters": [
+                    {
+                        "description": "settings",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ShopSettingForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/util.ResponseResult"
                         }
@@ -1068,11 +919,6 @@ const docTemplate = `{
         },
         "/api/v1/shop/status": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "tags": [
                     "ShopAPI"
                 ],
@@ -1094,347 +940,6 @@ const docTemplate = `{
                                     }
                                 }
                             ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/users": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "UserAPI"
-                ],
-                "summary": "Query user list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "pagination index",
-                        "name": "current",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "pagination size",
-                        "name": "pageSize",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Username for login",
-                        "name": "username",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name of user",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Status of user (activated, freezed)",
-                        "name": "status",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/schema.User"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "UserAPI"
-                ],
-                "summary": "Create user record",
-                "parameters": [
-                    {
-                        "description": "Request body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.User"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/users/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "UserAPI"
-                ],
-                "summary": "Get user record by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "unique id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.User"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "UserAPI"
-                ],
-                "summary": "Update user record by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "unique id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Request body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "UserAPI"
-                ],
-                "summary": "Delete user record by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "unique id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/users/{id}/reset-pwd": {
-            "patch": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "UserAPI"
-                ],
-                "summary": "Reset user password by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "unique id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/util.ResponseResult"
                         }
                     }
                 }
@@ -1459,381 +964,410 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.Captcha": {
-            "type": "object",
-            "properties": {
-                "captcha_id": {
-                    "description": "Captcha ID",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.Logger": {
+        "schema.JDCategory": {
             "type": "object",
             "properties": {
                 "created_at": {
-                    "description": "Create time",
-                    "type": "string"
-                },
-                "data": {
-                    "description": "Log data",
                     "type": "string"
                 },
                 "id": {
-                    "description": "Unique ID",
                     "type": "string"
                 },
-                "level": {
-                    "description": "Log level",
+                "last_discovered_at": {
                     "type": "string"
                 },
-                "login_name": {
-                    "description": "From User.Username",
+                "last_discovery_error": {
                     "type": "string"
                 },
-                "message": {
-                    "description": "Log message",
+                "last_discovery_status": {
                     "type": "string"
                 },
-                "stack": {
-                    "description": "Error stack",
-                    "type": "string"
-                },
-                "tag": {
-                    "description": "Log tag",
-                    "type": "string"
-                },
-                "trace_id": {
-                    "description": "Trace ID",
-                    "type": "string"
-                },
-                "user_id": {
-                    "description": "User ID",
-                    "type": "string"
-                },
-                "user_name": {
-                    "description": "From User.Name",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.LoginForm": {
-            "type": "object",
-            "required": [
-                "captcha_code",
-                "captcha_id",
-                "password",
-                "username"
-            ],
-            "properties": {
-                "captcha_code": {
-                    "description": "Captcha verify code",
-                    "type": "string"
-                },
-                "captcha_id": {
-                    "description": "Captcha verify id",
-                    "type": "string"
-                },
-                "password": {
-                    "description": "Login password (md5 hash)",
-                    "type": "string"
-                },
-                "username": {
-                    "description": "Login name",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.LoginToken": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "description": "Access token (JWT)",
-                    "type": "string"
-                },
-                "expires_at": {
-                    "description": "Expired time (Unit: second)",
+                "max_pages": {
                     "type": "integer"
-                },
-                "token_type": {
-                    "description": "Token type (Usage: Authorization=${token_type} ${access_token})",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.Menu": {
-            "type": "object",
-            "properties": {
-                "children": {
-                    "description": "Child menus",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.Menu"
-                    }
-                },
-                "code": {
-                    "description": "Code of menu (unique for each level)",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "Create time",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "Details about menu",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Unique ID",
-                    "type": "string"
                 },
                 "name": {
-                    "description": "Display name of menu",
                     "type": "string"
                 },
-                "parent_id": {
-                    "description": "Parent ID (From Menu.ID)",
+                "source_url": {
                     "type": "string"
-                },
-                "parent_path": {
-                    "description": "Parent path (split by .)",
-                    "type": "string"
-                },
-                "path": {
-                    "description": "Access path of menu",
-                    "type": "string"
-                },
-                "properties": {
-                    "description": "Properties of menu (JSON)",
-                    "type": "string"
-                },
-                "resources": {
-                    "description": "Resources of menu",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.MenuResource"
-                    }
-                },
-                "sequence": {
-                    "description": "Sequence for sorting (Order by desc)",
-                    "type": "integer"
                 },
                 "status": {
-                    "description": "Status of menu (enabled, disabled)",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Type of menu (page, button)",
                     "type": "string"
                 },
                 "updated_at": {
-                    "description": "Update time",
                     "type": "string"
                 }
             }
         },
-        "schema.MenuForm": {
+        "schema.JDCategoryForm": {
             "type": "object",
             "required": [
-                "code",
+                "max_pages",
                 "name",
-                "status",
-                "type"
-            ],
-            "properties": {
-                "code": {
-                    "description": "Code of menu (unique for each level)",
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "description": {
-                    "description": "Details about menu",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Display name of menu",
-                    "type": "string",
-                    "maxLength": 128
-                },
-                "parent_id": {
-                    "description": "Parent ID (From Menu.ID)",
-                    "type": "string"
-                },
-                "path": {
-                    "description": "Access path of menu",
-                    "type": "string"
-                },
-                "properties": {
-                    "description": "Properties of menu (JSON)",
-                    "type": "string"
-                },
-                "resources": {
-                    "description": "Resources of menu",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.MenuResource"
-                    }
-                },
-                "sequence": {
-                    "description": "Sequence for sorting (Order by desc)",
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "Status of menu (enabled, disabled)",
-                    "type": "string",
-                    "enum": [
-                        "disabled",
-                        "enabled"
-                    ]
-                },
-                "type": {
-                    "description": "Type of menu (page, button)",
-                    "type": "string",
-                    "enum": [
-                        "page",
-                        "button"
-                    ]
-                }
-            }
-        },
-        "schema.MenuResource": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "Create time",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Unique ID",
-                    "type": "string"
-                },
-                "menu_id": {
-                    "description": "From Menu.ID",
-                    "type": "string"
-                },
-                "method": {
-                    "description": "HTTP method",
-                    "type": "string"
-                },
-                "path": {
-                    "description": "API request path (e.g. /api/v1/users/:id)",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "Update time",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.Role": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "Code of role (unique)",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "Create time",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "Details about role",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Unique ID",
-                    "type": "string"
-                },
-                "menus": {
-                    "description": "Role menu list",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.RoleMenu"
-                    }
-                },
-                "name": {
-                    "description": "Display name of role",
-                    "type": "string"
-                },
-                "sequence": {
-                    "description": "Sequence for sorting",
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "Status of role (disabled, enabled)",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "Update time",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.RoleForm": {
-            "type": "object",
-            "required": [
-                "code",
-                "name",
+                "source_url",
                 "status"
             ],
             "properties": {
-                "code": {
-                    "description": "Code of role (unique)",
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "description": {
-                    "description": "Details about role",
-                    "type": "string"
-                },
-                "menus": {
-                    "description": "Role menu list",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.RoleMenu"
-                    }
+                "max_pages": {
+                    "type": "integer",
+                    "maximum": 50,
+                    "minimum": 1
                 },
                 "name": {
-                    "description": "Display name of role",
                     "type": "string",
                     "maxLength": 128
                 },
-                "sequence": {
-                    "description": "Sequence for sorting",
-                    "type": "integer"
+                "source_url": {
+                    "type": "string",
+                    "maxLength": 768
                 },
                 "status": {
-                    "description": "Status of role (enabled, disabled)",
                     "type": "string",
                     "enum": [
-                        "disabled",
-                        "enabled"
+                        "enabled",
+                        "disabled"
                     ]
                 }
             }
         },
-        "schema.RoleMenu": {
+        "schema.JDProduct": {
             "type": "object",
             "properties": {
+                "alert_state": {
+                    "type": "string"
+                },
+                "canonical_url": {
+                    "type": "string"
+                },
+                "checkout_pending": {
+                    "type": "boolean"
+                },
                 "created_at": {
-                    "description": "Create time",
+                    "type": "string"
+                },
+                "discovery_status": {
+                    "type": "string"
+                },
+                "first_seen_at": {
                     "type": "string"
                 },
                 "id": {
-                    "description": "Unique ID",
                     "type": "string"
                 },
-                "menu_id": {
-                    "description": "From Menu.ID",
+                "image_url": {
                     "type": "string"
                 },
-                "role_id": {
-                    "description": "From Role.ID",
+                "last_seen_at": {
+                    "type": "string"
+                },
+                "monitor_status": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_checkout_at": {
+                    "type": "string"
+                },
+                "self_operated": {
+                    "type": "boolean"
+                },
+                "sku": {
                     "type": "string"
                 },
                 "updated_at": {
-                    "description": "Update time",
                     "type": "string"
+                }
+            }
+        },
+        "schema.JDProductForm": {
+            "type": "object",
+            "required": [
+                "monitor_status"
+            ],
+            "properties": {
+                "monitor_status": {
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "paused"
+                    ]
+                }
+            }
+        },
+        "schema.JobRun": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "cursor": {
+                    "type": "string"
+                },
+                "error_summary": {
+                    "type": "string"
+                },
+                "failure_count": {
+                    "type": "integer"
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "job_type": {
+                    "type": "string"
+                },
+                "scanned_count": {
+                    "type": "integer"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "success_count": {
+                    "type": "integer"
+                },
+                "trigger": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.NotificationTestResult": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "type": "string"
+                },
+                "response": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.PriceAlert": {
+            "type": "object",
+            "properties": {
+                "baseline_price_fen": {
+                    "type": "integer"
+                },
+                "baseline_price_yuan": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_price_fen": {
+                    "type": "integer"
+                },
+                "current_price_yuan": {
+                    "type": "string"
+                },
+                "drop_basis_points": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_error": {
+                    "type": "string"
+                },
+                "product": {
+                    "$ref": "#/definitions/schema.JDProduct"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "provider_response": {
+                    "type": "string"
+                },
+                "send_attempts": {
+                    "type": "integer"
+                },
+                "send_status": {
+                    "type": "string"
+                },
+                "sent_at": {
+                    "type": "string"
+                },
+                "trigger_sample_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.PriceSample": {
+            "type": "object",
+            "properties": {
+                "collected_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "price_fen": {
+                    "type": "integer"
+                },
+                "price_yuan": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "sample_type": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "schema.ProductDetail": {
+            "type": "object",
+            "properties": {
+                "alert_state": {
+                    "type": "string"
+                },
+                "canonical_url": {
+                    "type": "string"
+                },
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.JDCategory"
+                    }
+                },
+                "checkout_average_fen": {
+                    "type": "integer"
+                },
+                "checkout_average_yuan": {
+                    "type": "string"
+                },
+                "checkout_pending": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "discovery_status": {
+                    "type": "string"
+                },
+                "first_seen_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "last_seen_at": {
+                    "type": "string"
+                },
+                "latest_checkout_price": {
+                    "$ref": "#/definitions/schema.PriceSample"
+                },
+                "latest_public_price": {
+                    "$ref": "#/definitions/schema.PriceSample"
+                },
+                "monitor_status": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_checkout_at": {
+                    "type": "string"
+                },
+                "self_operated": {
+                    "type": "boolean"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.SessionStatus": {
+            "type": "object",
+            "properties": {
+                "authenticated": {
+                    "type": "boolean"
+                },
+                "captcha_blocked": {
+                    "type": "boolean"
+                },
+                "error_summary": {
+                    "type": "string"
+                },
+                "last_checked_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ShopSetting": {
+            "type": "object",
+            "properties": {
+                "alert_drop_percent": {
+                    "type": "integer"
+                },
+                "candidate_drop_percent": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "recovery_drop_percent": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ShopSettingForm": {
+            "type": "object",
+            "required": [
+                "alert_drop_percent",
+                "candidate_drop_percent",
+                "recovery_drop_percent"
+            ],
+            "properties": {
+                "alert_drop_percent": {
+                    "type": "integer",
+                    "maximum": 90,
+                    "minimum": 1
+                },
+                "candidate_drop_percent": {
+                    "type": "integer",
+                    "maximum": 90,
+                    "minimum": 1
+                },
+                "recovery_drop_percent": {
+                    "type": "integer",
+                    "maximum": 90,
+                    "minimum": 1
                 }
             }
         },
@@ -1844,184 +1378,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "schema.UpdateCurrentUser": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "email": {
-                    "description": "Email of user",
-                    "type": "string",
-                    "maxLength": 128
-                },
-                "name": {
-                    "description": "Name of user",
-                    "type": "string",
-                    "maxLength": 64
-                },
-                "phone": {
-                    "description": "Phone number of user",
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "remark": {
-                    "description": "Remark of user",
-                    "type": "string",
-                    "maxLength": 1024
-                }
-            }
-        },
-        "schema.UpdateLoginPassword": {
-            "type": "object",
-            "required": [
-                "new_password",
-                "old_password"
-            ],
-            "properties": {
-                "new_password": {
-                    "description": "New password (md5 hash)",
-                    "type": "string"
-                },
-                "old_password": {
-                    "description": "Old password (md5 hash)",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "Create time",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "Email of user",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Unique ID",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Name of user",
-                    "type": "string"
-                },
-                "phone": {
-                    "description": "Phone number of user",
-                    "type": "string"
-                },
-                "remark": {
-                    "description": "Remark of user",
-                    "type": "string"
-                },
-                "roles": {
-                    "description": "Roles of user",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.UserRole"
-                    }
-                },
-                "status": {
-                    "description": "Status of user (activated, freezed)",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "Update time",
-                    "type": "string"
-                },
-                "username": {
-                    "description": "Username for login",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.UserForm": {
-            "type": "object",
-            "required": [
-                "name",
-                "roles",
-                "status",
-                "username"
-            ],
-            "properties": {
-                "email": {
-                    "description": "Email of user",
-                    "type": "string",
-                    "maxLength": 128
-                },
-                "name": {
-                    "description": "Name of user",
-                    "type": "string",
-                    "maxLength": 64
-                },
-                "password": {
-                    "description": "Password for login (md5 hash)",
-                    "type": "string",
-                    "maxLength": 64
-                },
-                "phone": {
-                    "description": "Phone number of user",
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "remark": {
-                    "description": "Remark of user",
-                    "type": "string",
-                    "maxLength": 1024
-                },
-                "roles": {
-                    "description": "Roles of user",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.UserRole"
-                    }
-                },
-                "status": {
-                    "description": "Status of user (activated, freezed)",
-                    "type": "string",
-                    "enum": [
-                        "activated",
-                        "freezed"
-                    ]
-                },
-                "username": {
-                    "description": "Username for login",
-                    "type": "string",
-                    "maxLength": 64
-                }
-            }
-        },
-        "schema.UserRole": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "Create time",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Unique ID",
-                    "type": "string"
-                },
-                "role_id": {
-                    "description": "From Role.ID",
-                    "type": "string"
-                },
-                "role_name": {
-                    "description": "From Role.Name",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "Update time",
-                    "type": "string"
-                },
-                "user_id": {
-                    "description": "From User.ID",
                     "type": "string"
                 }
             }
@@ -2041,13 +1397,6 @@ const docTemplate = `{
                 }
             }
         }
-    },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        }
     }
 }`
 
@@ -2055,10 +1404,10 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "v10.1.0",
 	Host:             "",
-	BasePath:         "",
-	Schemes:          []string{},
+	BasePath:         "/",
+	Schemes:          []string{"http", "https"},
 	Title:            "ginadmin",
-	Description:      "A lightweight, flexible, elegant and full-featured RBAC scaffolding based on GIN + GORM 2.0 + Casbin 2.0 + Wire DI.",
+	Description:      "JD self-operated product price monitoring service based on Gin, GORM and Wire DI.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

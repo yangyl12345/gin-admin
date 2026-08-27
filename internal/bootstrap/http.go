@@ -15,7 +15,6 @@ import (
 	"github.com/LyricTian/gin-admin/v10/pkg/logging"
 	"github.com/LyricTian/gin-admin/v10/pkg/middleware"
 	"github.com/LyricTian/gin-admin/v10/pkg/util"
-	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -46,7 +45,7 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 	allowedPrefixes := injector.M.RouterPrefixes()
 
 	// Register middlewares
-	if err := useHTTPMiddlewares(ctx, e, injector, allowedPrefixes); err != nil {
+	if err := useHTTPMiddlewares(ctx, e, allowedPrefixes); err != nil {
 		return nil, err
 	}
 
@@ -103,7 +102,7 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 	}, nil
 }
 
-func useHTTPMiddlewares(_ context.Context, e *gin.Engine, injector *wirex.Injector, allowedPrefixes []string) error {
+func useHTTPMiddlewares(_ context.Context, e *gin.Engine, allowedPrefixes []string) error {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		Enable:                 config.C.Middleware.CORS.Enable,
 		AllowAllOrigins:        config.C.Middleware.CORS.AllowAllOrigins,
@@ -139,20 +138,12 @@ func useHTTPMiddlewares(_ context.Context, e *gin.Engine, injector *wirex.Inject
 		MaxContentLen:       config.C.Middleware.CopyBody.MaxContentLen,
 	}))
 
-	e.Use(middleware.AuthWithConfig(middleware.AuthConfig{
-		AllowedPathPrefixes: allowedPrefixes,
-		SkippedPathPrefixes: config.C.Middleware.Auth.SkippedPathPrefixes,
-		ParseUserID:         injector.M.RBAC.LoginAPI.LoginBIZ.ParseUserID,
-		RootID:              config.C.General.Root.ID,
-	}))
-
 	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
 		Enable:              config.C.Middleware.RateLimiter.Enable,
 		AllowedPathPrefixes: allowedPrefixes,
 		SkippedPathPrefixes: config.C.Middleware.RateLimiter.SkippedPathPrefixes,
 		Period:              config.C.Middleware.RateLimiter.Period,
 		MaxRequestsPerIP:    config.C.Middleware.RateLimiter.MaxRequestsPerIP,
-		MaxRequestsPerUser:  config.C.Middleware.RateLimiter.MaxRequestsPerUser,
 		StoreType:           config.C.Middleware.RateLimiter.Store.Type,
 		MemoryStoreConfig: middleware.RateLimiterMemoryConfig{
 			Expiration:      time.Second * time.Duration(config.C.Middleware.RateLimiter.Store.Memory.Expiration),
@@ -163,24 +154,6 @@ func useHTTPMiddlewares(_ context.Context, e *gin.Engine, injector *wirex.Inject
 			Password: config.C.Middleware.RateLimiter.Store.Redis.Password,
 			DB:       config.C.Middleware.RateLimiter.Store.Redis.DB,
 			Username: config.C.Middleware.RateLimiter.Store.Redis.Username,
-		},
-	}))
-
-	e.Use(middleware.CasbinWithConfig(middleware.CasbinConfig{
-		AllowedPathPrefixes: allowedPrefixes,
-		SkippedPathPrefixes: config.C.Middleware.Casbin.SkippedPathPrefixes,
-		Skipper: func(c *gin.Context) bool {
-			if config.C.Middleware.Casbin.Disable ||
-				util.FromIsRootUser(c.Request.Context()) {
-				return true
-			}
-			return false
-		},
-		GetEnforcer: func(c *gin.Context) *casbin.Enforcer {
-			return injector.M.RBAC.Casbinx.GetEnforcer()
-		},
-		GetSubjects: func(c *gin.Context) []string {
-			return util.FromUserCache(c.Request.Context()).RoleIDs
 		},
 	}))
 

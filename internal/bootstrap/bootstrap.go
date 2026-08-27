@@ -40,7 +40,6 @@ func Run(ctx context.Context, runCfg RunConfig) error {
 	config.C.General.WorkDir = workDir
 	config.C.Middleware.Static.Dir = staticDir
 	config.C.Print()
-	config.C.PreLoad()
 
 	// Initialize logger.
 	cleanLoggerFn, err := logging.InitWithConfig(ctx, &config.C.Logger, initLoggerHook)

@@ -6,8 +6,7 @@ import (
 	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/schema"
 )
 
-// Status exposes module-level information without coupling the shop module to
-// the RBAC persistence model.
+// Status exposes module-level information for the standalone shop service.
 type Status struct{}
 
 func NewStatus() *Status {

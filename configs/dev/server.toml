@@ -5,9 +5,6 @@ Debug = true
 PprofAddr = "" # Pprof monitor address, "localhost:6060"
 DisableSwagger = false
 DisablePrintConfig = false
-DefaultLoginPwd = "6351623c8cef86fefabfa7da046fc619" # MD5("abc-123")
-MenuFile = "menu.json" # Or use "menu_cn.json"
-DenyOperateMenu = true
 
 [General.HTTP]
 Addr = ":8040"
@@ -18,29 +15,7 @@ IdleTimeout = 10
 CertFile = ""
 KeyFile = ""
 
-[General.Root] # Super Administrator Account
-ID = "root"
-Username = "admin"
-Password = "6351623c8cef86fefabfa7da046fc619" # MD5("abc-123")
-Name = "Admin"
-
 [Storage]
-
-[Storage.Cache]
-Type = "memory" # memory/badger/redis
-Delimiter = ":"
-
-[Storage.Cache.Memory]
-CleanupInterval = 60
-
-[Storage.Cache.Badger]
-Path = "data/cache"
-
-[Storage.Cache.Redis]
-Addr = "127.0.0.1:6379"
-Username = ""
-Password = ""
-DB = 1
 
 [Storage.DB]
 Debug = true
@@ -58,27 +33,37 @@ AutoMigrate = true
 
 [Util]
 
-[Util.Captcha]
-Length = 4
-Width = 400
-Height = 160
-CacheType = "memory" # memory/redis
-
-[Util.Captcha.Redis]
-Addr = "" # If empty, then use the same configuration as Storage.Cache.Redis
-Username = ""
-Password = ""
-DB = 1
-KeyPrefix = "captcha:"
-
 [Util.Prometheus]
 Enable = false
 Port = 9100
-BasicUsername = "admin"
-BasicPassword = "admin"
-LogApis = [] # Log APIs, e.g. ["/api/v1/users"]
+LogApis = [] # Log APIs, e.g. ["/api/v1/shop/products"]
 LogMethods = [] # Log HTTP methods, e.g. ["GET"]
 DefaultCollect = true
 
-[Dictionary]
-UserCacheExp = 4 # hours
+[Shop]
+Enable = true
+
+[Shop.JD]
+ChromeExecutable = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+UserDataDir = "data/jd-profile"
+Headless = true
+DebugArtifacts = false
+MaxProducts = 1000
+PublicWorkers = 4
+CheckoutBatch = 20
+PublicDelayMin = 1
+PublicDelayMax = 3
+CheckoutDelayMin = 10
+CheckoutDelayMax = 30
+NavigationTimeout = 45
+
+[Shop.Scheduler]
+DiscoverSpec = "0 */6 * * *"
+PublicScanSpec = "*/15 * * * *"
+CheckoutSpec = "@every 1m"
+CleanupSpec = "0 3 * * *"
+AlertDeliverySpec = "@every 5m"
+
+[Shop.ServerChan]
+BaseURL = "https://sctapi.ftqq.com"
+RequestTimeout = 10

@@ -12,7 +12,6 @@ type Logger struct {
 	ID        string    `gorm:"size:20;primaryKey;" json:"id"`  // Unique ID
 	Level     string    `gorm:"size:20;index;" json:"level"`    // Log level
 	TraceID   string    `gorm:"size:64;index;" json:"trace_id"` // Trace ID
-	UserID    string    `gorm:"size:20;index;" json:"user_id"`  // User ID
 	Tag       string    `gorm:"size:32;index;" json:"tag"`      // Log tag
 	Message   string    `gorm:"size:1024;" json:"message"`      // Log message
 	Stack     string    `gorm:"type:text;" json:"stack"`        // Error stack
@@ -61,10 +60,6 @@ func (h *GormHook) Exec(extra map[string]string, b []byte) error {
 	if v, ok := data["trace_id"]; ok {
 		msg.TraceID = v.(string)
 		delete(data, "trace_id")
-	}
-	if v, ok := data["user_id"]; ok {
-		msg.UserID = v.(string)
-		delete(data, "user_id")
 	}
 	if v, ok := data["level"]; ok {
 		msg.Level = v.(string)

@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   errors.Error:
     properties:
@@ -10,420 +11,284 @@ definitions:
       status:
         type: string
     type: object
-  schema.Captcha:
-    properties:
-      captcha_id:
-        description: Captcha ID
-        type: string
-    type: object
-  schema.Logger:
+  schema.JDCategory:
     properties:
       created_at:
-        description: Create time
-        type: string
-      data:
-        description: Log data
         type: string
       id:
-        description: Unique ID
         type: string
-      level:
-        description: Log level
+      last_discovered_at:
         type: string
-      login_name:
-        description: From User.Username
+      last_discovery_error:
         type: string
-      message:
-        description: Log message
+      last_discovery_status:
         type: string
-      stack:
-        description: Error stack
-        type: string
-      tag:
-        description: Log tag
-        type: string
-      trace_id:
-        description: Trace ID
-        type: string
-      user_id:
-        description: User ID
-        type: string
-      user_name:
-        description: From User.Name
-        type: string
-    type: object
-  schema.LoginForm:
-    properties:
-      captcha_code:
-        description: Captcha verify code
-        type: string
-      captcha_id:
-        description: Captcha verify id
-        type: string
-      password:
-        description: Login password (md5 hash)
-        type: string
-      username:
-        description: Login name
-        type: string
-    required:
-    - captcha_code
-    - captcha_id
-    - password
-    - username
-    type: object
-  schema.LoginToken:
-    properties:
-      access_token:
-        description: Access token (JWT)
-        type: string
-      expires_at:
-        description: 'Expired time (Unit: second)'
+      max_pages:
         type: integer
-      token_type:
-        description: 'Token type (Usage: Authorization=${token_type} ${access_token})'
-        type: string
-    type: object
-  schema.Menu:
-    properties:
-      children:
-        description: Child menus
-        items:
-          $ref: '#/definitions/schema.Menu'
-        type: array
-      code:
-        description: Code of menu (unique for each level)
-        type: string
-      created_at:
-        description: Create time
-        type: string
-      description:
-        description: Details about menu
-        type: string
-      id:
-        description: Unique ID
-        type: string
       name:
-        description: Display name of menu
         type: string
-      parent_id:
-        description: Parent ID (From Menu.ID)
+      source_url:
         type: string
-      parent_path:
-        description: Parent path (split by .)
-        type: string
-      path:
-        description: Access path of menu
-        type: string
-      properties:
-        description: Properties of menu (JSON)
-        type: string
-      resources:
-        description: Resources of menu
-        items:
-          $ref: '#/definitions/schema.MenuResource'
-        type: array
-      sequence:
-        description: Sequence for sorting (Order by desc)
-        type: integer
       status:
-        description: Status of menu (enabled, disabled)
-        type: string
-      type:
-        description: Type of menu (page, button)
         type: string
       updated_at:
-        description: Update time
         type: string
     type: object
-  schema.MenuForm:
+  schema.JDCategoryForm:
     properties:
-      code:
-        description: Code of menu (unique for each level)
-        maxLength: 32
-        type: string
-      description:
-        description: Details about menu
-        type: string
+      max_pages:
+        maximum: 50
+        minimum: 1
+        type: integer
       name:
-        description: Display name of menu
         maxLength: 128
         type: string
-      parent_id:
-        description: Parent ID (From Menu.ID)
+      source_url:
+        maxLength: 768
         type: string
-      path:
-        description: Access path of menu
-        type: string
-      properties:
-        description: Properties of menu (JSON)
-        type: string
-      resources:
-        description: Resources of menu
-        items:
-          $ref: '#/definitions/schema.MenuResource'
-        type: array
-      sequence:
-        description: Sequence for sorting (Order by desc)
-        type: integer
       status:
-        description: Status of menu (enabled, disabled)
         enum:
-        - disabled
         - enabled
-        type: string
-      type:
-        description: Type of menu (page, button)
-        enum:
-        - page
-        - button
+        - disabled
         type: string
     required:
-    - code
+    - max_pages
     - name
+    - source_url
     - status
-    - type
     type: object
-  schema.MenuResource:
+  schema.JDProduct:
     properties:
+      alert_state:
+        type: string
+      canonical_url:
+        type: string
+      checkout_pending:
+        type: boolean
       created_at:
-        description: Create time
+        type: string
+      discovery_status:
+        type: string
+      first_seen_at:
         type: string
       id:
-        description: Unique ID
         type: string
-      menu_id:
-        description: From Menu.ID
+      image_url:
         type: string
-      method:
-        description: HTTP method
+      last_seen_at:
         type: string
-      path:
-        description: API request path (e.g. /api/v1/users/:id)
+      monitor_status:
+        type: string
+      name:
+        type: string
+      next_checkout_at:
+        type: string
+      self_operated:
+        type: boolean
+      sku:
         type: string
       updated_at:
-        description: Update time
         type: string
     type: object
-  schema.Role:
+  schema.JDProductForm:
     properties:
-      code:
-        description: Code of role (unique)
-        type: string
-      created_at:
-        description: Create time
-        type: string
-      description:
-        description: Details about role
-        type: string
-      id:
-        description: Unique ID
-        type: string
-      menus:
-        description: Role menu list
-        items:
-          $ref: '#/definitions/schema.RoleMenu'
-        type: array
-      name:
-        description: Display name of role
-        type: string
-      sequence:
-        description: Sequence for sorting
-        type: integer
-      status:
-        description: Status of role (disabled, enabled)
-        type: string
-      updated_at:
-        description: Update time
-        type: string
-    type: object
-  schema.RoleForm:
-    properties:
-      code:
-        description: Code of role (unique)
-        maxLength: 32
-        type: string
-      description:
-        description: Details about role
-        type: string
-      menus:
-        description: Role menu list
-        items:
-          $ref: '#/definitions/schema.RoleMenu'
-        type: array
-      name:
-        description: Display name of role
-        maxLength: 128
-        type: string
-      sequence:
-        description: Sequence for sorting
-        type: integer
-      status:
-        description: Status of role (enabled, disabled)
+      monitor_status:
         enum:
-        - disabled
-        - enabled
+        - active
+        - paused
         type: string
     required:
-    - code
-    - name
-    - status
+    - monitor_status
     type: object
-  schema.RoleMenu:
+  schema.JobRun:
     properties:
       created_at:
-        description: Create time
+        type: string
+      cursor:
+        type: string
+      error_summary:
+        type: string
+      failure_count:
+        type: integer
+      finished_at:
         type: string
       id:
-        description: Unique ID
         type: string
-      menu_id:
-        description: From Menu.ID
+      job_type:
         type: string
-      role_id:
-        description: From Role.ID
+      scanned_count:
+        type: integer
+      started_at:
+        type: string
+      status:
+        type: string
+      success_count:
+        type: integer
+      trigger:
         type: string
       updated_at:
-        description: Update time
         type: string
+    type: object
+  schema.NotificationTestResult:
+    properties:
+      provider:
+        type: string
+      response:
+        type: string
+    type: object
+  schema.PriceAlert:
+    properties:
+      baseline_price_fen:
+        type: integer
+      baseline_price_yuan:
+        type: string
+      created_at:
+        type: string
+      current_price_fen:
+        type: integer
+      current_price_yuan:
+        type: string
+      drop_basis_points:
+        type: integer
+      id:
+        type: string
+      last_error:
+        type: string
+      product:
+        $ref: '#/definitions/schema.JDProduct'
+      product_id:
+        type: string
+      provider_response:
+        type: string
+      send_attempts:
+        type: integer
+      send_status:
+        type: string
+      sent_at:
+        type: string
+      trigger_sample_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  schema.PriceSample:
+    properties:
+      collected_at:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      price_fen:
+        type: integer
+      price_yuan:
+        type: string
+      product_id:
+        type: string
+      sample_type:
+        type: string
+      source:
+        type: string
+      valid:
+        type: boolean
+    type: object
+  schema.ProductDetail:
+    properties:
+      alert_state:
+        type: string
+      canonical_url:
+        type: string
+      categories:
+        items:
+          $ref: '#/definitions/schema.JDCategory'
+        type: array
+      checkout_average_fen:
+        type: integer
+      checkout_average_yuan:
+        type: string
+      checkout_pending:
+        type: boolean
+      created_at:
+        type: string
+      discovery_status:
+        type: string
+      first_seen_at:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      last_seen_at:
+        type: string
+      latest_checkout_price:
+        $ref: '#/definitions/schema.PriceSample'
+      latest_public_price:
+        $ref: '#/definitions/schema.PriceSample'
+      monitor_status:
+        type: string
+      name:
+        type: string
+      next_checkout_at:
+        type: string
+      self_operated:
+        type: boolean
+      sku:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  schema.SessionStatus:
+    properties:
+      authenticated:
+        type: boolean
+      captcha_blocked:
+        type: boolean
+      error_summary:
+        type: string
+      last_checked_at:
+        type: string
+    type: object
+  schema.ShopSetting:
+    properties:
+      alert_drop_percent:
+        type: integer
+      candidate_drop_percent:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: string
+      recovery_drop_percent:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  schema.ShopSettingForm:
+    properties:
+      alert_drop_percent:
+        maximum: 90
+        minimum: 1
+        type: integer
+      candidate_drop_percent:
+        maximum: 90
+        minimum: 1
+        type: integer
+      recovery_drop_percent:
+        maximum: 90
+        minimum: 1
+        type: integer
+    required:
+    - alert_drop_percent
+    - candidate_drop_percent
+    - recovery_drop_percent
     type: object
   schema.Status:
     properties:
       name:
         type: string
       status:
-        type: string
-    type: object
-  schema.UpdateCurrentUser:
-    properties:
-      email:
-        description: Email of user
-        maxLength: 128
-        type: string
-      name:
-        description: Name of user
-        maxLength: 64
-        type: string
-      phone:
-        description: Phone number of user
-        maxLength: 32
-        type: string
-      remark:
-        description: Remark of user
-        maxLength: 1024
-        type: string
-    required:
-    - name
-    type: object
-  schema.UpdateLoginPassword:
-    properties:
-      new_password:
-        description: New password (md5 hash)
-        type: string
-      old_password:
-        description: Old password (md5 hash)
-        type: string
-    required:
-    - new_password
-    - old_password
-    type: object
-  schema.User:
-    properties:
-      created_at:
-        description: Create time
-        type: string
-      email:
-        description: Email of user
-        type: string
-      id:
-        description: Unique ID
-        type: string
-      name:
-        description: Name of user
-        type: string
-      phone:
-        description: Phone number of user
-        type: string
-      remark:
-        description: Remark of user
-        type: string
-      roles:
-        description: Roles of user
-        items:
-          $ref: '#/definitions/schema.UserRole'
-        type: array
-      status:
-        description: Status of user (activated, freezed)
-        type: string
-      updated_at:
-        description: Update time
-        type: string
-      username:
-        description: Username for login
-        type: string
-    type: object
-  schema.UserForm:
-    properties:
-      email:
-        description: Email of user
-        maxLength: 128
-        type: string
-      name:
-        description: Name of user
-        maxLength: 64
-        type: string
-      password:
-        description: Password for login (md5 hash)
-        maxLength: 64
-        type: string
-      phone:
-        description: Phone number of user
-        maxLength: 32
-        type: string
-      remark:
-        description: Remark of user
-        maxLength: 1024
-        type: string
-      roles:
-        description: Roles of user
-        items:
-          $ref: '#/definitions/schema.UserRole'
-        type: array
-      status:
-        description: Status of user (activated, freezed)
-        enum:
-        - activated
-        - freezed
-        type: string
-      username:
-        description: Username for login
-        maxLength: 64
-        type: string
-    required:
-    - name
-    - roles
-    - status
-    - username
-    type: object
-  schema.UserRole:
-    properties:
-      created_at:
-        description: Create time
-        type: string
-      id:
-        description: Unique ID
-        type: string
-      role_id:
-        description: From Role.ID
-        type: string
-      role_name:
-        description: From Role.Name
-        type: string
-      updated_at:
-        description: Update time
-        type: string
-      user_id:
-        description: From User.ID
         type: string
     type: object
   util.ResponseResult:
@@ -438,205 +303,12 @@ definitions:
     type: object
 info:
   contact: {}
-  description: A lightweight, flexible, elegant and full-featured RBAC scaffolding
-    based on GIN + GORM 2.0 + Casbin 2.0 + Wire DI.
+  description: JD self-operated product price monitoring service based on Gin, GORM
+    and Wire DI.
   title: ginadmin
   version: v10.1.0
 paths:
-  /api/v1/captcha/id:
-    get:
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.Captcha'
-              type: object
-      summary: Get captcha ID
-      tags:
-      - LoginAPI
-  /api/v1/captcha/image:
-    get:
-      parameters:
-      - description: Captcha ID
-        in: query
-        name: id
-        required: true
-        type: string
-      - description: Reload captcha image (reload=1)
-        in: query
-        name: reload
-        type: number
-      produces:
-      - image/png
-      responses:
-        "200":
-          description: Captcha image
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      summary: Response captcha image
-      tags:
-      - LoginAPI
-  /api/v1/current/logout:
-    post:
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Logout system
-      tags:
-      - LoginAPI
-  /api/v1/current/menus:
-    get:
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/schema.Menu'
-                  type: array
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Query current user menus based on the current user role
-      tags:
-      - LoginAPI
-  /api/v1/current/password:
-    put:
-      parameters:
-      - description: Request body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UpdateLoginPassword'
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Change current user password
-      tags:
-      - LoginAPI
-  /api/v1/current/refresh-token:
-    post:
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.LoginToken'
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Refresh current access token
-      tags:
-      - LoginAPI
-  /api/v1/current/user:
-    get:
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.User'
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Get current user info
-      tags:
-      - LoginAPI
-    put:
-      parameters:
-      - description: Request body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UpdateCurrentUser'
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Update current user info
-      tags:
-      - LoginAPI
-  /api/v1/loggers:
+  /api/v1/shop/alerts:
     get:
       parameters:
       - default: 1
@@ -651,25 +323,13 @@ paths:
         name: pageSize
         required: true
         type: integer
-      - description: log level
+      - description: product ID
         in: query
-        name: level
+        name: productID
         type: string
-      - description: trace ID
+      - description: pending, sent, or failed
         in: query
-        name: traceID
-        type: string
-      - description: user name
-        in: query
-        name: userName
-        type: string
-      - description: log tag
-        in: query
-        name: tag
-        type: string
-      - description: log message
-        in: query
-        name: message
+        name: sendStatus
         type: string
       - description: start time
         in: query
@@ -688,41 +348,9 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/schema.Logger'
+                    $ref: '#/definitions/schema.PriceAlert'
                   type: array
               type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Query logger list
-      tags:
-      - LoggerAPI
-  /api/v1/login:
-    post:
-      parameters:
-      - description: Request body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.LoginForm'
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.LoginToken'
-              type: object
         "400":
           description: Bad Request
           schema:
@@ -731,176 +359,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/util.ResponseResult'
-      summary: Login system with username and password
+      summary: Query price alerts
       tags:
-      - LoginAPI
-  /api/v1/menus:
-    get:
-      parameters:
-      - description: Code path of menu (like xxx.xxx.xxx)
-        in: query
-        name: code
-        type: string
-      - description: Name of menu
-        in: query
-        name: name
-        type: string
-      - description: Whether to include menu resources
-        in: query
-        name: includeResources
-        type: boolean
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/schema.Menu'
-                  type: array
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Query menu tree data
-      tags:
-      - MenuAPI
-    post:
-      parameters:
-      - description: Request body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.MenuForm'
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.Menu'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Create menu record
-      tags:
-      - MenuAPI
-  /api/v1/menus/{id}:
-    delete:
-      parameters:
-      - description: unique id
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Delete menu record by ID
-      tags:
-      - MenuAPI
-    get:
-      parameters:
-      - description: unique id
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.Menu'
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Get menu record by ID
-      tags:
-      - MenuAPI
-    put:
-      parameters:
-      - description: unique id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Request body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.MenuForm'
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Update menu record by ID
-      tags:
-      - MenuAPI
-  /api/v1/roles:
+      - ShopAPI
+  /api/v1/shop/categories:
     get:
       parameters:
       - default: 1
@@ -915,11 +377,11 @@ paths:
         name: pageSize
         required: true
         type: integer
-      - description: Display name of role
+      - description: category name
         in: query
         name: name
         type: string
-      - description: Status of role (disabled, enabled)
+      - description: enabled or disabled
         in: query
         name: status
         type: string
@@ -932,30 +394,28 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/schema.Role'
+                    $ref: '#/definitions/schema.JDCategory'
                   type: array
               type: object
-        "401":
-          description: Unauthorized
+        "400":
+          description: Bad Request
           schema:
             $ref: '#/definitions/util.ResponseResult'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Query role list
+      summary: Query JD categories
       tags:
-      - RoleAPI
+      - ShopAPI
     post:
       parameters:
-      - description: Request body
+      - description: category
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/schema.RoleForm'
+          $ref: '#/definitions/schema.JDCategoryForm'
       responses:
         "200":
           description: OK
@@ -964,29 +424,27 @@ paths:
             - $ref: '#/definitions/util.ResponseResult'
             - properties:
                 data:
-                  $ref: '#/definitions/schema.Role'
+                  $ref: '#/definitions/schema.JDCategory'
               type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/util.ResponseResult'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Create role record
+      summary: Create JD category
       tags:
-      - RoleAPI
-  /api/v1/roles/{id}:
+      - ShopAPI
+  /api/v1/shop/categories/{id}:
     delete:
       parameters:
-      - description: unique id
+      - description: category ID
         in: path
         name: id
         required: true
@@ -996,22 +454,20 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/util.ResponseResult'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Delete role record by ID
+      summary: Delete JD category
       tags:
-      - RoleAPI
+      - ShopAPI
     get:
       parameters:
-      - description: unique id
+      - description: category ID
         in: path
         name: id
         required: true
@@ -1024,34 +480,32 @@ paths:
             - $ref: '#/definitions/util.ResponseResult'
             - properties:
                 data:
-                  $ref: '#/definitions/schema.Role'
+                  $ref: '#/definitions/schema.JDCategory'
               type: object
-        "401":
-          description: Unauthorized
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/util.ResponseResult'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Get role record by ID
+      summary: Get JD category
       tags:
-      - RoleAPI
+      - ShopAPI
     put:
       parameters:
-      - description: unique id
+      - description: category ID
         in: path
         name: id
         required: true
         type: string
-      - description: Request body
+      - description: category
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/schema.RoleForm'
+          $ref: '#/definitions/schema.JDCategoryForm'
       responses:
         "200":
           description: OK
@@ -1061,19 +515,360 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/util.ResponseResult'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Update role record by ID
+      summary: Update JD category
       tags:
-      - RoleAPI
+      - ShopAPI
+  /api/v1/shop/jobs:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        required: true
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: job type
+        in: query
+        name: type
+        type: string
+      - description: job status
+        in: query
+        name: status
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.JobRun'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Query shop job runs
+      tags:
+      - ShopAPI
+  /api/v1/shop/jobs/{type}/run:
+    post:
+      parameters:
+      - description: discover, public-scan, or checkout-sample
+        in: path
+        name: type
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.JobRun'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Trigger an asynchronous shop job
+      tags:
+      - ShopAPI
+  /api/v1/shop/notifications/test:
+    post:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.NotificationTestResult'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Send a ServerChan test notification
+      tags:
+      - ShopAPI
+  /api/v1/shop/products:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        required: true
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: JD SKU
+        in: query
+        name: sku
+        type: string
+      - description: product name
+        in: query
+        name: name
+        type: string
+      - description: category ID
+        in: query
+        name: categoryID
+        type: string
+      - description: self-operated
+        in: query
+        name: selfOperated
+        type: boolean
+      - description: active or paused
+        in: query
+        name: monitorStatus
+        type: string
+      - description: active, stale, or capped
+        in: query
+        name: discoveryStatus
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.JDProduct'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Query JD products
+      tags:
+      - ShopAPI
+  /api/v1/shop/products/{id}:
+    get:
+      parameters:
+      - description: product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.ProductDetail'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get JD product details
+      tags:
+      - ShopAPI
+    put:
+      parameters:
+      - description: product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: monitor status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.JDProductForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Pause or resume JD product monitoring
+      tags:
+      - ShopAPI
+  /api/v1/shop/products/{id}/prices:
+    get:
+      parameters:
+      - description: product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        required: true
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: public or checkout
+        in: query
+        name: type
+        type: string
+      - description: start time
+        in: query
+        name: startTime
+        type: string
+      - description: end time
+        in: query
+        name: endTime
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.PriceSample'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Query JD product price history
+      tags:
+      - ShopAPI
+  /api/v1/shop/session:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.SessionStatus'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get JD browser session status
+      tags:
+      - ShopAPI
+  /api/v1/shop/settings:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.ShopSetting'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get shop monitoring settings
+      tags:
+      - ShopAPI
+    put:
+      parameters:
+      - description: settings
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ShopSettingForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Update shop monitoring settings
+      tags:
+      - ShopAPI
   /api/v1/shop/status:
     get:
       responses:
@@ -1086,222 +881,10 @@ paths:
                 data:
                   $ref: '#/definitions/schema.Status'
               type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
       summary: Get shop module status
       tags:
       - ShopAPI
-  /api/v1/users:
-    get:
-      parameters:
-      - default: 1
-        description: pagination index
-        in: query
-        name: current
-        required: true
-        type: integer
-      - default: 10
-        description: pagination size
-        in: query
-        name: pageSize
-        required: true
-        type: integer
-      - description: Username for login
-        in: query
-        name: username
-        type: string
-      - description: Name of user
-        in: query
-        name: name
-        type: string
-      - description: Status of user (activated, freezed)
-        in: query
-        name: status
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/schema.User'
-                  type: array
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Query user list
-      tags:
-      - UserAPI
-    post:
-      parameters:
-      - description: Request body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserForm'
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.User'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Create user record
-      tags:
-      - UserAPI
-  /api/v1/users/{id}:
-    delete:
-      parameters:
-      - description: unique id
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Delete user record by ID
-      tags:
-      - UserAPI
-    get:
-      parameters:
-      - description: unique id
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.User'
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Get user record by ID
-      tags:
-      - UserAPI
-    put:
-      parameters:
-      - description: unique id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Request body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserForm'
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Update user record by ID
-      tags:
-      - UserAPI
-  /api/v1/users/{id}/reset-pwd:
-    patch:
-      parameters:
-      - description: unique id
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/util.ResponseResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Reset user password by ID
-      tags:
-      - UserAPI
-securityDefinitions:
-  ApiKeyAuth:
-    in: header
-    name: Authorization
-    type: apiKey
+schemes:
+- http
+- https
 swagger: "2.0"

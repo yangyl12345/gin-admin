@@ -11,16 +11,12 @@ const (
 	TagKeyMain     = "main"
 	TagKeyRecovery = "recovery"
 	TagKeyRequest  = "request"
-	TagKeyLogin    = "login"
-	TagKeyLogout   = "logout"
 	TagKeySystem   = "system"
-	TagKeyOperate  = "operate"
 )
 
 type (
 	ctxLoggerKey  struct{}
 	ctxTraceIDKey struct{}
-	ctxUserIDKey  struct{}
 	ctxTagKey     struct{}
 	ctxStackKey   struct{}
 )
@@ -45,20 +41,6 @@ func NewTraceID(ctx context.Context, traceID string) context.Context {
 
 func FromTraceID(ctx context.Context) string {
 	v := ctx.Value(ctxTraceIDKey{})
-	if v != nil {
-		if s, ok := v.(string); ok {
-			return s
-		}
-	}
-	return ""
-}
-
-func NewUserID(ctx context.Context, userID string) context.Context {
-	return context.WithValue(ctx, ctxUserIDKey{}, userID)
-}
-
-func FromUserID(ctx context.Context) string {
-	v := ctx.Value(ctxUserIDKey{})
 	if v != nil {
 		if s, ok := v.(string); ok {
 			return s
@@ -99,9 +81,6 @@ func Context(ctx context.Context) *zap.Logger {
 	var fields []zap.Field
 	if v := FromTraceID(ctx); v != "" {
 		fields = append(fields, zap.String("trace_id", v))
-	}
-	if v := FromUserID(ctx); v != "" {
-		fields = append(fields, zap.String("user_id", v))
 	}
 	if v := FromTag(ctx); v != "" {
 		fields = append(fields, zap.String("tag", v))

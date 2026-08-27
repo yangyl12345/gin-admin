@@ -14,8 +14,6 @@ type Config struct {
 	Enable         bool
 	App            string
 	ListenPort     int
-	BasicUserName  string
-	BasicPassword  string
 	LogApi         map[string]struct{}
 	LogMethod      map[string]struct{}
 	Buckets        []float64
@@ -131,18 +129,7 @@ func (p *PrometheusWrapper) run() {
 
 	go func() {
 		handle := promhttp.HandlerFor(p.reg, promhttp.HandlerOpts{})
-		http.Handle("/metrics", promhttp.InstrumentMetricHandler(
-			p.reg,
-			http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				username, pwd, ok := req.BasicAuth()
-				if !ok || !(username == p.c.BasicUserName && pwd == p.c.BasicPassword) {
-					w.WriteHeader(http.StatusUnauthorized)
-					_, _ = w.Write([]byte("401 Unauthorized"))
-					return
-				}
-				handle.ServeHTTP(w, req)
-			})),
-		)
+		http.Handle("/metrics", promhttp.InstrumentMetricHandler(p.reg, handle))
 		log.Printf("Prometheus listening on: %d", p.c.ListenPort)
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", p.c.ListenPort), nil))
 	}()

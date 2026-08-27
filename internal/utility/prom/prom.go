@@ -25,8 +25,6 @@ func Init() {
 		Enable:         config.C.Util.Prometheus.Enable,
 		App:            config.C.General.AppName,
 		ListenPort:     config.C.Util.Prometheus.Port,
-		BasicUserName:  config.C.Util.Prometheus.BasicUsername,
-		BasicPassword:  config.C.Util.Prometheus.BasicPassword,
 		LogApi:         logAPI,
 		LogMethod:      logMethod,
 		Objectives:     map[float64]float64{0.9: 0.01, 0.95: 0.005, 0.99: 0.001},

@@ -12,19 +12,17 @@ var VERSION = "v10.1.0"
 
 // @title ginadmin
 // @version v10.1.0
-// @description A lightweight, flexible, elegant and full-featured RBAC scaffolding based on GIN + GORM 2.0 + Casbin 2.0 + Wire DI.
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name Authorization
+// @description JD self-operated product price monitoring service based on Gin, GORM and Wire DI.
 // @schemes http https
 // @basePath /
 func main() {
 	app := cli.NewApp()
 	app.Name = "ginadmin"
 	app.Version = VERSION
-	app.Usage = "A lightweight, flexible, elegant and full-featured RBAC scaffolding based on GIN + GORM 2.0 + Casbin 2.0 + Wire DI."
+	app.Usage = "JD self-operated product price monitoring service."
 	app.Commands = []*cli.Command{
 		cmd.StartCmd(),
+		cmd.JDLoginCmd(),
 		cmd.StopCmd(),
 		cmd.VersionCmd(VERSION),
 	}

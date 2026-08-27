@@ -16,10 +16,8 @@ type Status struct {
 type StatusResponse = schema.Status
 
 // @Tags ShopAPI
-// @Security ApiKeyAuth
 // @Summary Get shop module status
 // @Success 200 {object} util.ResponseResult{data=schema.Status}
-// @Failure 401 {object} util.ResponseResult
 // @Router /api/v1/shop/status [get]
 func (a *Status) Get(c *gin.Context) {
 	data, err := a.StatusBIZ.Get(c.Request.Context())
