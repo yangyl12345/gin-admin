@@ -42,6 +42,36 @@ http://127.0.0.1:8040/swagger/index.html
 GET /health
 ```
 
+## 一键价格对比
+
+首次使用时，先在服务停止状态下打开独立 Chrome，并由本人依次完成京东移动端与桌面搜索登录：
+
+```bash
+make jd-login
+```
+
+然后提供一个真实的京东分类或搜索列表 HTTPS 地址，一键创建分类、发现商品、采集公开价与结算价，并等待异步任务完成：
+
+```bash
+CATEGORY_URL='https://list.jd.com/list.html?...' make price-compare
+```
+
+分类只需创建一次。后续执行时可以直接运行：
+
+```bash
+make price-compare
+```
+
+脚本会在服务未运行时执行 `make serve-d`，相同分类 URL 已存在时不会重复创建，最终在终端输出公开价、结算价、30 日结算均价和价差，并把完整结果写入已被 Git 忽略的 `data/price-comparison.json`。
+
+只需要公开价、不需要京东登录时，可以运行：
+
+```bash
+PUBLIC_ONLY=1 CATEGORY_URL='https://list.jd.com/list.html?...' make price-compare
+```
+
+`CATEGORY_URL` 推荐传入纯 `https://...` 地址；如果误粘贴成 `[标题](https://...)` 或 `<https://...>`，脚本也会自动提取真实地址。可通过 `CATEGORY_NAME`、`MAX_PAGES`、`COMPARE_LIMIT`、`JOB_TIMEOUT`、`OUTPUT_FILE` 和 `BASE_URL` 调整分类名称、发现页数、输出数量、等待时间、结果文件和服务地址。运行 `bash scripts/price_compare.sh help` 查看完整说明。账号、密码、短信码、二维码和验证码仍必须由本人在 Chrome 中处理，脚本不会读取、保存或绕过这些验证信息。
+
 ## Shop API
 
 所有接口均位于 `/api/v1/shop`，不需要 `Authorization` 请求头。

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"net/url"
 	"path/filepath"
@@ -31,6 +32,11 @@ var (
 
 const mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
 
+const (
+	desktopUserAgent      = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+	desktopSearchProbeURL = "https://search.jd.com/Search?keyword=%E6%89%8B%E6%9C%BA&enc=utf-8"
+)
+
 type ChromeClient struct {
 	mu          sync.Mutex
 	rootCtx     context.Context
@@ -39,6 +45,28 @@ type ChromeClient struct {
 }
 
 func NewChromeClient() Client { return new(ChromeClient) }
+
+// jdCDPErrorf suppresses only the protocol events that newer Chrome versions
+// emit in a shape the pinned cdproto version cannot decode. These Network and
+// Cookie events are not used by the JD workflow, so navigation and DOM actions
+// can safely continue. All other browser errors remain visible.
+func jdCDPErrorf(format string, args ...interface{}) {
+	message := fmt.Sprintf(format, args...)
+	if isBenignCDPCompatibilityError(message) {
+		return
+	}
+	log.Printf(format, args...)
+}
+
+func isBenignCDPCompatibilityError(message string) bool {
+	if !strings.Contains(message, "could not unmarshal event") {
+		return false
+	}
+	if strings.Contains(message, "unknown IPAddressSpace value: Loopback") {
+		return true
+	}
+	return strings.Contains(message, "parse error:") && strings.Contains(message, "cookiePart")
+}
 
 func (a *ChromeClient) ensureBrowser() (context.Context, error) {
 	a.mu.Lock()
@@ -68,7 +96,7 @@ func (a *ChromeClient) ensureBrowser() (context.Context, error) {
 		opts = append(opts, chromedp.Flag("headless", false))
 	}
 	allocCtx, cancelAlloc := chromedp.NewExecAllocator(context.Background(), opts...)
-	rootCtx, cancelRoot := chromedp.NewContext(allocCtx)
+	rootCtx, cancelRoot := chromedp.NewContext(allocCtx, chromedp.WithErrorf(jdCDPErrorf))
 	if err := chromedp.Run(rootCtx); err != nil {
 		cancelRoot()
 		cancelAlloc()
@@ -118,6 +146,35 @@ func mobileActions() chromedp.Action {
 		}
 		return emulation.SetTimezoneOverride("Asia/Shanghai").Do(ctx)
 	})
+}
+
+func desktopActions() chromedp.Action {
+	return chromedp.ActionFunc(func(ctx context.Context) error {
+		if err := emulation.SetDeviceMetricsOverride(1280, 900, 1, false).Do(ctx); err != nil {
+			return err
+		}
+		if err := emulation.SetTouchEmulationEnabled(false).Do(ctx); err != nil {
+			return err
+		}
+		if err := emulation.SetUserAgentOverride(desktopUserAgent).Do(ctx); err != nil {
+			return err
+		}
+		if err := emulation.SetLocaleOverride().WithLocale("zh_CN").Do(ctx); err != nil {
+			return err
+		}
+		return emulation.SetTimezoneOverride("Asia/Shanghai").Do(ctx)
+	})
+}
+
+func categoryBrowserActions(raw string) chromedp.Action {
+	u, err := url.Parse(raw)
+	if err == nil {
+		switch strings.ToLower(u.Hostname()) {
+		case "list.jd.com", "search.jd.com", "channel.jd.com":
+			return desktopActions()
+		}
+	}
+	return mobileActions()
 }
 
 func (a *ChromeClient) SessionStatus(ctx context.Context) (*schema.SessionStatus, error) {
@@ -178,11 +235,23 @@ func (a *ChromeClient) DiscoverCategory(ctx context.Context, category *schema.JD
 		var location string
 		var items []discoveredDOMItem
 		err = chromedp.Run(tabCtx,
-			mobileActions(),
+			categoryBrowserActions(pageURL),
 			chromedp.Navigate(pageURL),
 			chromedp.WaitReady("body", chromedp.ByQuery),
-			chromedp.Sleep(1500*time.Millisecond),
+		)
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		_ = chromedp.Run(tabCtx, chromedp.Poll(`(() => {
+  const body = document.body && document.body.innerText || '';
+  const hasProduct = Array.from(document.querySelectorAll('a[href]')).some(a => /item\.jd\.com|item\.m\.jd\.com|\/product\/[0-9]+/.test(a.href || ''));
+  return hasProduct || /login|passport|captcha|verify/i.test(location.href) || /安全验证|滑动验证|验证码|登录京东|请先登录/.test(body);
+})()`, nil, chromedp.WithPollingInterval(500*time.Millisecond), chromedp.WithPollingTimeout(15*time.Second)))
+		var body string
+		err = chromedp.Run(tabCtx,
 			chromedp.Location(&location),
+			chromedp.Text("body", &body, chromedp.ByQuery),
 			chromedp.Evaluate(`(() => Array.from(document.querySelectorAll('a[href]')).map(a => {
   const href = a.href || '';
   const box = a.closest('li,[class*="item"],[class*="product"],[class*="goods"]') || a.parentElement;
@@ -197,6 +266,18 @@ func (a *ChromeClient) DiscoverCategory(ctx context.Context, category *schema.JD
 		if err := schema.ValidateJDNavigationURL(location); err != nil {
 			return nil, err
 		}
+		if containsVerification(body, location) {
+			return nil, ErrCaptchaBlocked
+		}
+		if containsLogin(body, location) {
+			return nil, ErrLoginRequired
+		}
+		if len(items) == 0 {
+			if page == 1 {
+				return nil, fmt.Errorf("%w: no JD product links found at %s", ErrPriceUnavailable, location)
+			}
+			break
+		}
 		for _, item := range items {
 			sku := parseSKU(item.Href)
 			if sku == "" || !containsSelfOperated(item.Context) {
@@ -210,13 +291,13 @@ func (a *ChromeClient) DiscoverCategory(ctx context.Context, category *schema.JD
 				SKU: sku, Name: name, CanonicalURL: canonicalURL(sku), ImageURL: item.Image, SelfOperated: true,
 			}
 		}
-		if len(items) == 0 {
-			break
-		}
 	}
 	result := make([]schema.DiscoveredProduct, 0, len(seen))
 	for _, item := range seen {
 		result = append(result, item)
+	}
+	if len(result) == 0 {
+		return nil, fmt.Errorf("%w: no JD self-operated products found", ErrNotSelfOperated)
 	}
 	return result, nil
 }

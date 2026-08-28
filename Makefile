@@ -1,4 +1,4 @@
-.PHONY: start build
+.PHONY: start build serve serve-d stop price-compare jd-login
 
 NOW = $(shell date -u '+%Y%m%d%I%M%S')
 
@@ -47,3 +47,9 @@ serve-d: build
 
 stop:
 	./$(SERVER_BIN) stop
+
+price-compare:
+	@bash scripts/price_compare.sh run
+
+jd-login:
+	@bash scripts/price_compare.sh login

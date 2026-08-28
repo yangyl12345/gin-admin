@@ -15,6 +15,7 @@
 /ginadmin
 /ginadmin_linux_amd64
 /ginadmin.lock
+/ginadmin.log
 /release
 /data
 /internal/test/data
