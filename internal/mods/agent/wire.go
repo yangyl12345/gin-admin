@@ -12,8 +12,8 @@ import (
 var Set = wire.NewSet(
 	wire.Struct(new(Agent), "*"),
 	wire.Struct(new(dal.Store), "*"),
-	llm.NewOpenAI,
-	wire.Bind(new(llm.Gateway), new(*llm.OpenAI)),
+	llm.NewKimi,
+	wire.Bind(new(llm.Gateway), new(*llm.Kimi)),
 	retrieval.NewCache,
 	biz.NewEventHub,
 	biz.NewService,

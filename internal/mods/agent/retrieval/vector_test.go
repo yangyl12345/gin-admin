@@ -1,12 +1,38 @@
 package retrieval
 
 import (
+	"math"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestLocalEmbeddingIsDeterministicAndRanksChineseAndEnglishTerms(t *testing.T) {
+	first := EmbedText("Kimi 的 Responses API 支持函数调用和结构化输出。")
+	second := EmbedText("Kimi 的 Responses API 支持函数调用和结构化输出。")
+	require.Len(t, first, LocalEmbeddingDimension)
+	assert.Equal(t, first, second)
+
+	var magnitude float64
+	for _, value := range first {
+		magnitude += float64(value * value)
+	}
+	assert.InDelta(t, 1, math.Sqrt(magnitude), 1e-6)
+
+	records := []VectorRecord{
+		{ChunkID: "kimi", Vector: EmbedText("Kimi 的 Responses API 支持函数调用和结构化输出。")},
+		{ChunkID: "local", Vector: EmbedText("Agent 使用本地词法索引检索知识库文档。")},
+		{ChunkID: "english", Vector: EmbedText("The agent stores documents in a local lexical index.")},
+	}
+	chinese := TopK(records, EmbedText("Kimi 函数调用"), 1)
+	require.Len(t, chinese, 1)
+	assert.Equal(t, "kimi", chinese[0].ChunkID)
+	english := TopK(records, EmbedText("local lexical index"), 1)
+	require.Len(t, english, 1)
+	assert.Equal(t, "english", english[0].ChunkID)
+}
 
 func TestFloat32RoundTripAndInvalidEncoding(t *testing.T) {
 	want := []float32{1, -2.5, 0.125}

@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"sort"
@@ -27,33 +26,11 @@ type fakeAgentGateway struct {
 	lastChunkID        string
 	finalReviewApprove bool
 	invalidCitation    bool
-	embedFailures      int
 }
 
 func (a *fakeAgentGateway) add(stage string) {
 	a.mu.Lock()
 	a.stages = append(a.stages, stage)
-	a.mu.Unlock()
-}
-
-func (a *fakeAgentGateway) Embed(_ context.Context, _ string, texts []string) ([][]float32, llm.Usage, error) {
-	a.mu.Lock()
-	if a.embedFailures > 0 {
-		a.embedFailures--
-		a.mu.Unlock()
-		return nil, llm.Usage{}, errors.New("OpenAI rate limit")
-	}
-	a.mu.Unlock()
-	result := make([][]float32, len(texts))
-	for i := range result {
-		result[i] = []float32{1, 0}
-	}
-	return result, llm.Usage{InputTokens: int64(len(texts)), TotalTokens: int64(len(texts))}, nil
-}
-
-func (a *fakeAgentGateway) setEmbedFailures(count int) {
-	a.mu.Lock()
-	a.embedFailures = count
 	a.mu.Unlock()
 }
 
@@ -118,7 +95,7 @@ func (a *fakeAgentGateway) stageList() []string {
 }
 
 func TestAgentKnowledgeWorkflowAndSSE(t *testing.T) {
-	t.Setenv("OPENAI_API_KEY", "test-openai-key")
+	t.Setenv("KIMI_API_KEY", "test-kimi-key")
 	t.Setenv("AGENT_API_KEY", "test-agent-key")
 
 	originalConfig := config.C.Agent
@@ -150,7 +127,7 @@ func TestAgentKnowledgeWorkflowAndSSE(t *testing.T) {
 	const auth = "Bearer test-agent-key"
 	var kb agentschema.KnowledgeBase
 	e.POST(baseAPI+"/agent/knowledge-bases").WithHeader("Authorization", auth).
-		WithJSON(agentschema.KnowledgeBaseForm{Name: "Agent integration test", Description: "Fake OpenAI workflow"}).
+		WithJSON(agentschema.KnowledgeBaseForm{Name: "Agent integration test", Description: "Fake Kimi workflow"}).
 		Expect().Status(http.StatusOK).JSON().Decode(&util.ResponseResult{Data: &kb})
 	require.NotEmpty(t, kb.ID)
 	e.POST(baseAPI+"/agent/knowledge-bases/"+kb.ID+"/documents").WithHeader("Authorization", auth).
@@ -231,11 +208,6 @@ func TestAgentKnowledgeWorkflowAndSSE(t *testing.T) {
 	assert.Equal(t, agentschema.RunStatusFailed, invalidCitationRun.Status)
 	assert.Nil(t, invalidCitationRun.FinalMessage)
 
-	fake.setEmbedFailures(3)
-	var failedJob agentschema.IngestionJob
-	e.POST(baseAPI+"/agent/documents/"+uploaded.Document.ID+"/reindex").WithHeader("Authorization", auth).
-		Expect().Status(http.StatusAccepted).JSON().Decode(&util.ResponseResult{Data: &failedJob})
-	waitAgentJobFailure(t, failedJob.ID)
 }
 
 func createAgentRun(t *testing.T, e *httpexpect.Expect, auth, conversationID, content string) string {

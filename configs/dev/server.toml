@@ -68,7 +68,7 @@ AlertDeliverySpec = "@every 5m"
 BaseURL = "https://sctapi.ftqq.com"
 RequestTimeout = 10
 
-# Agent is disabled by default. When enabled, OPENAI_API_KEY and AGENT_API_KEY
+# Agent uses Kimi. When enabled, KIMI_API_KEY and AGENT_API_KEY
 # must be supplied through the process environment; never put either secret in
 # this file.
 [Agent]
@@ -83,9 +83,8 @@ WorkerPollSeconds = 2
 RunTimeoutSeconds = 180
 RetrievalTopK = 8
 CacheTTLSeconds = 300
-EmbeddingBatchSize = 64
-EmbeddingModel = "text-embedding-3-small"
-SupervisorModel = "gpt-5.6-terra"
-RetrieverModel = "gpt-5.6-luna"
-AnswererModel = "gpt-5.6-terra"
-ReviewerModel = "gpt-5.6-terra"
+EmbeddingModel = "local-hash-v1"
+SupervisorModel = "kimi-k2.7-code"
+RetrieverModel = "kimi-k2.7-code"
+AnswererModel = "kimi-k2.7-code"
+ReviewerModel = "kimi-k2.7-code"

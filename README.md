@@ -131,12 +131,12 @@ go build ./...
 
 ## 独立 Agent 知识库
 
-Agent 位于 `internal/mods/agent`，与 `internal/mods/shop` 并列且不复用 Shop 的模型、路由或业务逻辑。它提供 TXT/Markdown 异步索引、`text-embedding-3-small` 向量检索、Supervisor → Retriever → Answerer → Reviewer 固定工作流、可追溯引用、持久化运行轨迹及断点续读 SSE。
+Agent 位于 `internal/mods/agent`，与 `internal/mods/shop` 并列且不复用 Shop 的模型、路由或业务逻辑。它使用 Kimi 原生 Responses API 完成 Supervisor → Retriever → Answerer → Reviewer 固定工作流，使用本地确定性词法哈希向量进行 TXT/Markdown 异步索引，并提供可追溯引用、持久化运行轨迹及断点续读 SSE。
 
-Agent 默认关闭，现有 Shop 启动方式不需要 OpenAI 配置。启用时将 `configs/dev/server.toml` 中的 `[Agent] Enable` 改为 `true`，并在同一终端仅通过环境变量提供两个密钥：
+Agent 默认关闭，现有 Shop 启动方式不需要 Kimi 配置。启用时将 `configs/dev/server.toml` 中的 `[Agent] Enable` 改为 `true`，并在同一终端仅通过环境变量提供两个密钥：
 
 ```bash
-export OPENAI_API_KEY="你的 OpenAI API Key"
+export KIMI_API_KEY="你的 Kimi API Key"
 export AGENT_API_KEY="为本地 Agent API 设置的独立随机 Key"
 make agent-start
 ```
@@ -160,7 +160,7 @@ go test ./internal/mods/agent/... -count=1
 make agent-ui-check
 ```
 
-若服务已启用 Agent 且安全设置了两个环境变量，可运行 `scripts/test_agent_workflow.sh` 完成一次真实的上传、索引、对话、SSE 与引用冒烟测试；该脚本不会回显密钥，普通自动化测试也不会产生 OpenAI 费用。
+若服务已启用 Agent 且安全设置了两个环境变量，可运行 `scripts/test_agent_workflow.sh` 完成一次真实的上传、索引、对话、SSE 与引用冒烟测试；该脚本不会回显密钥，普通自动化测试也不会产生 Kimi 费用。
 
 ## 目录结构
 

@@ -12,36 +12,19 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 )
 
-type OpenAI struct{ client openai.Client }
+const kimiResponsesBaseURL = "https://api.moonshot.cn/v1"
 
-func NewOpenAI() *OpenAI {
-	return &OpenAI{client: openai.NewClient(option.WithAPIKey(os.Getenv("OPENAI_API_KEY")))}
+type Kimi struct{ client openai.Client }
+
+func NewKimi() *Kimi {
+	return newKimi(os.Getenv("KIMI_API_KEY"), kimiResponsesBaseURL)
 }
 
-func (a *OpenAI) Embed(ctx context.Context, model string, texts []string) ([][]float32, Usage, error) {
-	result, err := a.client.Embeddings.New(ctx, openai.EmbeddingNewParams{
-		Input:          openai.EmbeddingNewParamsInputUnion{OfArrayOfStrings: texts},
-		Model:          model,
-		EncodingFormat: openai.EmbeddingNewParamsEncodingFormatFloat,
-	})
-	if err != nil {
-		return nil, Usage{}, errors.New("OpenAI embeddings request failed")
-	}
-	vectors := make([][]float32, len(result.Data))
-	for _, item := range result.Data {
-		if item.Index < 0 || int(item.Index) >= len(vectors) {
-			return nil, Usage{}, errors.New("OpenAI embeddings response was invalid")
-		}
-		vector := make([]float32, len(item.Embedding))
-		for i, value := range item.Embedding {
-			vector[i] = float32(value)
-		}
-		vectors[item.Index] = vector
-	}
-	return vectors, Usage{InputTokens: result.Usage.PromptTokens, TotalTokens: result.Usage.TotalTokens}, nil
+func newKimi(apiKey, baseURL string) *Kimi {
+	return &Kimi{client: openai.NewClient(option.WithAPIKey(apiKey), option.WithBaseURL(baseURL))}
 }
 
-func (a *OpenAI) Structured(ctx context.Context, model, name, instructions, input string, outputSchema map[string]any) (json.RawMessage, Usage, error) {
+func (a *Kimi) Structured(ctx context.Context, model, name, instructions, input string, outputSchema map[string]any) (json.RawMessage, Usage, error) {
 	result, err := a.client.Responses.New(ctx, responses.ResponseNewParams{
 		Model:        model,
 		Instructions: openai.String(instructions),
@@ -52,16 +35,16 @@ func (a *OpenAI) Structured(ctx context.Context, model, name, instructions, inpu
 		}},
 	})
 	if err != nil {
-		return nil, Usage{}, errors.New("OpenAI Responses request failed")
+		return nil, Usage{}, errors.New("Kimi Responses request failed")
 	}
 	raw := json.RawMessage(result.OutputText())
 	if !json.Valid(raw) {
-		return nil, Usage{}, errors.New("OpenAI structured response was invalid")
+		return nil, Usage{}, errors.New("Kimi structured response was invalid")
 	}
 	return raw, Usage{InputTokens: result.Usage.InputTokens, OutputTokens: result.Usage.OutputTokens, TotalTokens: result.Usage.TotalTokens}, nil
 }
 
-func (a *OpenAI) Retrieve(ctx context.Context, model, input string, search SearchFunc) ([]schema.RetrievalHit, Usage, error) {
+func (a *Kimi) Retrieve(ctx context.Context, model, input string, search SearchFunc) ([]schema.RetrievalHit, Usage, error) {
 	params := responses.ResponseNewParams{
 		Model:             model,
 		Instructions:      openai.String("You are the Retriever. You may only gather evidence by calling knowledge_search. Call it one to three times with concise search queries, then stop. Never answer the user's question."),
@@ -80,7 +63,7 @@ func (a *OpenAI) Retrieve(ctx context.Context, model, input string, search Searc
 	for round := 0; round < 3; round++ {
 		result, err := a.client.Responses.New(ctx, params)
 		if err != nil {
-			return nil, usage, errors.New("OpenAI Retriever request failed")
+			return nil, usage, errors.New("Kimi Retriever request failed")
 		}
 		usage.Add(Usage{InputTokens: result.Usage.InputTokens, OutputTokens: result.Usage.OutputTokens, TotalTokens: result.Usage.TotalTokens})
 		var outputs []responses.ResponseInputItemUnionParam
@@ -91,17 +74,17 @@ func (a *OpenAI) Retrieve(ctx context.Context, model, input string, search Searc
 			}
 			call := item.AsFunctionCall()
 			if call.Name != "knowledge_search" {
-				return nil, usage, errors.New("OpenAI Retriever called an unsupported tool")
+				return nil, usage, errors.New("Kimi Retriever called an unsupported tool")
 			}
 			if toolCalls >= 3 {
-				return nil, usage, errors.New("OpenAI Retriever exceeded the tool-call limit")
+				return nil, usage, errors.New("Kimi Retriever exceeded the tool-call limit")
 			}
 			var args struct {
 				Query string `json:"query"`
 				TopK  int    `json:"top_k"`
 			}
 			if err := json.Unmarshal([]byte(call.Arguments), &args); err != nil || args.Query == "" || args.TopK < 1 || args.TopK > 20 {
-				return nil, usage, errors.New("OpenAI Retriever tool arguments were invalid")
+				return nil, usage, errors.New("Kimi Retriever tool arguments were invalid")
 			}
 			calledThisRound = true
 			toolCalls++
@@ -117,18 +100,23 @@ func (a *OpenAI) Retrieve(ctx context.Context, model, input string, search Searc
 				hits = append(hits, hit)
 			}
 			payload, _ := json.Marshal(found)
-			outputs = append(outputs, responses.ResponseInputItemUnionParam{OfFunctionCallOutput: &responses.ResponseInputItemFunctionCallOutputParam{CallID: openai.String(call.CallID), Output: responses.ResponseInputItemFunctionCallOutputOutputUnionParam{OfString: openai.String(string(payload))}}})
+			// Kimi's Responses API is stateless. Replay the model's tool call with
+			// its result instead of using previous_response_id for the next round.
+			outputs = append(outputs, responses.ResponseInputItemParamOfFunctionCall(call.Arguments, call.CallID, call.Name))
+			output := responses.ResponseInputItemParamOfFunctionCallOutput(string(payload))
+			output.OfFunctionCallOutput.CallID = openai.String(call.CallID)
+			outputs = append(outputs, output)
 		}
 		if !calledThisRound {
 			if toolCalls == 0 {
-				return nil, usage, errors.New("OpenAI Retriever did not call knowledge_search")
+				return nil, usage, errors.New("Kimi Retriever did not call knowledge_search")
 			}
 			return hits, usage, nil
 		}
 		if toolCalls >= 3 {
 			return hits, usage, nil
 		}
-		params = responses.ResponseNewParams{Model: model, PreviousResponseID: openai.String(result.ID), Input: responses.ResponseNewParamsInputUnion{OfInputItemList: outputs}, Store: openai.Bool(false), ParallelToolCalls: openai.Bool(false), Tools: params.Tools}
+		params = responses.ResponseNewParams{Model: model, Instructions: params.Instructions, Input: responses.ResponseNewParamsInputUnion{OfInputItemList: outputs}, Store: openai.Bool(false), ParallelToolCalls: openai.Bool(false), Tools: params.Tools}
 	}
 	return hits, usage, nil
 }

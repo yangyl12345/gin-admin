@@ -100,7 +100,7 @@ type Shop struct {
 }
 
 // Agent contains non-secret settings for the independent knowledge-agent
-// module. OPENAI_API_KEY and AGENT_API_KEY are deliberately read from the
+// module. KIMI_API_KEY and AGENT_API_KEY are deliberately read from the
 // process environment because Config.Print serializes this structure.
 type Agent struct {
 	Enable                    bool   `default:"false"`
@@ -114,12 +114,11 @@ type Agent struct {
 	RunTimeoutSeconds         int    `default:"180"`
 	RetrievalTopK             int    `default:"8"`
 	CacheTTLSeconds           int    `default:"300"`
-	EmbeddingBatchSize        int    `default:"64"`
-	EmbeddingModel            string `default:"text-embedding-3-small"`
-	SupervisorModel           string `default:"gpt-5.6-terra"`
-	RetrieverModel            string `default:"gpt-5.6-luna"`
-	AnswererModel             string `default:"gpt-5.6-terra"`
-	ReviewerModel             string `default:"gpt-5.6-terra"`
+	EmbeddingModel            string `default:"local-hash-v1"`
+	SupervisorModel           string `default:"kimi-k2.7-code"`
+	RetrieverModel            string `default:"kimi-k2.7-code"`
+	AnswererModel             string `default:"kimi-k2.7-code"`
+	ReviewerModel             string `default:"kimi-k2.7-code"`
 }
 
 func (c *Config) IsDebug() bool {

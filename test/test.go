@@ -38,6 +38,9 @@ func init() {
 	config.C.Storage.DB.AutoMigrate = true
 	config.C.General.WorkDir = repoRoot
 	config.C.Shop.Enable = false
+	// Agent integration tests start its workers explicitly with a fake Kimi
+	// gateway. Keep package initialization free from external API credentials.
+	config.C.Agent.Enable = false
 
 	ctx := context.Background()
 	injector, _, err := wirex.BuildInjector(ctx)

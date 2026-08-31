@@ -37,10 +37,10 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 	trans := &util.Trans{
 		DB: db,
 	}
-	openAI := llm.NewOpenAI()
+	kimi := llm.NewKimi()
 	cache := retrieval.NewCache()
 	eventHub := biz.NewEventHub()
-	service := biz.NewService(store, trans, openAI, cache, eventHub)
+	service := biz.NewService(store, trans, kimi, cache, eventHub)
 	apiAPI := &api.API{
 		Service: service,
 	}

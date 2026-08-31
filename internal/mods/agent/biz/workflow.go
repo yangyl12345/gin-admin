@@ -211,15 +211,13 @@ func (a *Service) searchKnowledge(ctx context.Context, kbID, query string, topK 
 	if topK <= 0 || topK > 20 {
 		topK = config.C.Agent.RetrievalTopK
 	}
-	vectors, usage, err := a.LLM.Embed(ctx, config.C.Agent.EmbeddingModel, []string{query})
-	if err != nil || len(vectors) != 1 {
-		return nil, usage, errors.New("query embedding failed")
-	}
+	vectors := retrieval.EmbedTexts([]string{query})
 	records, ok := a.Cache.Get(kbID)
 	if !ok {
+		var err error
 		records, err = a.Store.ListVectorRecords(ctx, kbID)
 		if err != nil {
-			return nil, usage, err
+			return nil, llm.Usage{}, err
 		}
 		a.Cache.Put(kbID, records)
 	}
@@ -228,7 +226,7 @@ func (a *Service) searchKnowledge(ctx context.Context, kbID, query string, topK 
 	for i, item := range scored {
 		hits[i] = schema.RetrievalHit{ChunkID: item.ChunkID, DocumentID: item.DocumentID, DocumentName: item.DocumentName, Content: item.Content, LineStart: item.LineStart, LineEnd: item.LineEnd, Score: item.Score}
 	}
-	return hits, usage, nil
+	return hits, llm.Usage{}, nil
 }
 
 func validCitationIDs(ids []string, hits []schema.RetrievalHit) bool {

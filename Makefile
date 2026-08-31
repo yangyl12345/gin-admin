@@ -64,6 +64,6 @@ agent-ui-check:
 	@npm --prefix web/agent-ui run build
 
 agent-start: agent-ui
-	@test -n "$$OPENAI_API_KEY" || (echo "OPENAI_API_KEY is required" >&2; exit 1)
+	@test -n "$$KIMI_API_KEY" || (echo "KIMI_API_KEY is required" >&2; exit 1)
 	@test -n "$$AGENT_API_KEY" || (echo "AGENT_API_KEY is required" >&2; exit 1)
 	@go run -ldflags "-X main.VERSION=$(RELEASE_TAG)" main.go start $(START_ARGS)

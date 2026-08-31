@@ -47,13 +47,13 @@ func (a *Service) ValidateConfig() error {
 		return nil
 	}
 	cfg := config.C.Agent
-	modelsValid := strings.TrimSpace(cfg.EmbeddingModel) != "" && strings.TrimSpace(cfg.SupervisorModel) != "" && strings.TrimSpace(cfg.RetrieverModel) != "" && strings.TrimSpace(cfg.AnswererModel) != "" && strings.TrimSpace(cfg.ReviewerModel) != ""
-	limitsValid := cfg.MaxUploadBytes > 0 && cfg.MaxUploadBytes <= 10*1024*1024 && cfg.ChunkSize > 0 && cfg.ChunkOverlap >= 0 && cfg.ChunkOverlap < cfg.ChunkSize && cfg.MaxChunksPerKnowledgeBase > 0 && cfg.IndexWorkerConcurrency > 0 && cfg.MaxIndexAttempts > 0 && cfg.WorkerPollSeconds > 0 && cfg.RunTimeoutSeconds > 0 && cfg.RetrievalTopK > 0 && cfg.RetrievalTopK <= 20 && cfg.CacheTTLSeconds >= 0 && cfg.EmbeddingBatchSize > 0
+	modelsValid := strings.TrimSpace(cfg.EmbeddingModel) == "local-hash-v1" && strings.TrimSpace(cfg.SupervisorModel) != "" && strings.TrimSpace(cfg.RetrieverModel) != "" && strings.TrimSpace(cfg.AnswererModel) != "" && strings.TrimSpace(cfg.ReviewerModel) != ""
+	limitsValid := cfg.MaxUploadBytes > 0 && cfg.MaxUploadBytes <= 10*1024*1024 && cfg.ChunkSize > 0 && cfg.ChunkOverlap >= 0 && cfg.ChunkOverlap < cfg.ChunkSize && cfg.MaxChunksPerKnowledgeBase > 0 && cfg.IndexWorkerConcurrency > 0 && cfg.MaxIndexAttempts > 0 && cfg.WorkerPollSeconds > 0 && cfg.RunTimeoutSeconds > 0 && cfg.RetrievalTopK > 0 && cfg.RetrievalTopK <= 20 && cfg.CacheTTLSeconds >= 0
 	if !modelsValid || !limitsValid {
 		return fmt.Errorf("invalid Agent configuration")
 	}
-	if strings.TrimSpace(getenv("OPENAI_API_KEY")) == "" {
-		return fmt.Errorf("OPENAI_API_KEY is required when Agent is enabled")
+	if strings.TrimSpace(getenv("KIMI_API_KEY")) == "" {
+		return fmt.Errorf("KIMI_API_KEY is required when Agent is enabled")
 	}
 	if strings.TrimSpace(getenv("AGENT_API_KEY")) == "" {
 		return fmt.Errorf("AGENT_API_KEY is required when Agent is enabled")
@@ -455,24 +455,16 @@ func (a *Service) processIngestion(ctx context.Context, job *schema.IngestionJob
 	for i := range parts {
 		texts[i] = parts[i].Content
 	}
-	batchSize := max(1, config.C.Agent.EmbeddingBatchSize)
-	var vectors [][]float32
-	var usage llm.Usage
-	for start := 0; start < len(texts); start += batchSize {
-		end := min(len(texts), start+batchSize)
-		batch, batchUsage, err := a.LLM.Embed(ctx, config.C.Agent.EmbeddingModel, texts[start:end])
-		usage.Add(batchUsage)
-		if err != nil || len(batch) != end-start {
-			a.finishIngestionFailure(ctx, job, "OpenAI embeddings request failed")
-			return
-		}
-		vectors = append(vectors, batch...)
+	vectors := retrieval.EmbedTexts(texts)
+	if len(vectors) != len(parts) {
+		a.finishIngestionFailure(ctx, job, "local vector generation failed")
+		return
 	}
 	now := time.Now()
 	chunks := make([]*schema.Chunk, len(parts))
 	for i := range parts {
 		if len(vectors[i]) == 0 {
-			a.finishIngestionFailure(ctx, job, "OpenAI embeddings response was invalid")
+			a.finishIngestionFailure(ctx, job, "local vector generation failed")
 			return
 		}
 		chunks[i] = &schema.Chunk{ID: util.NewXID(), KnowledgeBaseID: doc.KnowledgeBaseID, DocumentID: doc.ID, Ordinal: i, Content: parts[i].Content, LineStart: parts[i].LineStart, LineEnd: parts[i].LineEnd, EmbeddingModel: config.C.Agent.EmbeddingModel, EmbeddingDimension: len(vectors[i]), Embedding: retrieval.EncodeFloat32(vectors[i]), CreatedAt: now}
@@ -494,7 +486,7 @@ func (a *Service) processIngestion(ctx context.Context, job *schema.IngestionJob
 		if err := a.Store.UpdateDocumentIndex(txCtx, doc.ID, schema.IndexStatusReady, "", &now); err != nil {
 			return err
 		}
-		return a.Store.FinishIngestionJob(txCtx, job.ID, schema.JobStatusCompleted, "", usage.TotalTokens, false)
+		return a.Store.FinishIngestionJob(txCtx, job.ID, schema.JobStatusCompleted, "", 0, false)
 	})
 	if err != nil {
 		if errors.Is(err, errIngestionSourceUnavailable) {

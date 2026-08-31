@@ -22,7 +22,6 @@ func (a *Usage) Add(other Usage) {
 type SearchFunc func(context.Context, string, int) ([]schema.RetrievalHit, error)
 
 type Gateway interface {
-	Embed(context.Context, string, []string) ([][]float32, Usage, error)
 	Structured(context.Context, string, string, string, string, map[string]any) (json.RawMessage, Usage, error)
 	Retrieve(context.Context, string, string, SearchFunc) ([]schema.RetrievalHit, Usage, error)
 }
