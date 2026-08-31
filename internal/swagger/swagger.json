@@ -5,13 +5,785 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "JD self-operated product price monitoring service based on Gin, GORM and Wire DI.",
+        "description": "JD self-operated product price monitoring and independent knowledge Agent service based on Gin, GORM and Wire DI.",
         "title": "ginadmin",
         "contact": {},
         "version": "v10.1.0"
     },
     "basePath": "/",
     "paths": {
+        "/api/v1/agent/conversations": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.Conversation"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "description": "conversation",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ConversationForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.Conversation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/conversations/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.Conversation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/conversations/{id}/messages": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.Message"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/conversations/{id}/runs": {
+            "post": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "question",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.RunForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.RunCreated"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/documents/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "document ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.Document"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "document ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/documents/{id}/reindex": {
+            "post": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "document ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.IngestionJob"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/ingestion-jobs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ingestion job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.IngestionJob"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/knowledge-bases": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "summary": "List knowledge bases",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "pagination index",
+                        "name": "current",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "pagination size",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.KnowledgeBase"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "summary": "Create knowledge base",
+                "parameters": [
+                    {
+                        "description": "knowledge base",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.KnowledgeBaseForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.KnowledgeBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/knowledge-bases/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "knowledge base ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.KnowledgeBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "knowledge base ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "knowledge base",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.KnowledgeBaseForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "knowledge base ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/knowledge-bases/{id}/documents": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "knowledge base ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.Document"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "knowledge base ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "UTF-8 .txt or .md file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/runs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "run ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.Run"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/runs/{id}/events": {
+            "get": {
+                "security": [
+                    {
+                        "AgentBearer": []
+                    }
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "AgentAPI"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "run ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "last durable event ID",
+                        "name": "after",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE event stream",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/status": {
+            "get": {
+                "tags": [
+                    "AgentAPI"
+                ],
+                "summary": "Get non-sensitive Agent status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_LyricTian_gin-admin_v10_internal_mods_agent_schema.Status"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/shop/alerts": {
             "get": {
                 "tags": [
@@ -932,7 +1704,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schema.Status"
+                                            "$ref": "#/definitions/github_com_LyricTian_gin-admin_v10_internal_mods_shop_schema.Status"
                                         }
                                     }
                                 }
@@ -957,6 +1729,189 @@
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_LyricTian_gin-admin_v10_internal_mods_agent_schema.Status": {
+            "type": "object",
+            "properties": {
+                "embedding_model": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "models": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "workers_running": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_LyricTian_gin-admin_v10_internal_mods_shop_schema.Status": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.Citation": {
+            "type": "object",
+            "properties": {
+                "chunk_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "document_id": {
+                    "type": "string"
+                },
+                "document_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "line_end": {
+                    "type": "integer"
+                },
+                "line_start": {
+                    "type": "integer"
+                },
+                "quote": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "number"
+                }
+            }
+        },
+        "schema.Conversation": {
+            "type": "object",
+            "properties": {
+                "archived_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "knowledge_base_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ConversationForm": {
+            "type": "object",
+            "required": [
+                "knowledge_base_id"
+            ],
+            "properties": {
+                "knowledge_base_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            }
+        },
+        "schema.Document": {
+            "type": "object",
+            "properties": {
+                "archived_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "error_summary": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "index_status": {
+                    "type": "string"
+                },
+                "indexed_at": {
+                    "type": "string"
+                },
+                "knowledge_base_id": {
+                    "type": "string"
+                },
+                "media_type": {
+                    "type": "string"
+                },
+                "original_name": {
+                    "type": "string"
+                },
+                "sha256": {
+                    "type": "string"
+                },
+                "size_bytes": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.IngestionJob": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "integer"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "document_id": {
+                    "type": "string"
+                },
+                "error_summary": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "input_tokens": {
+                    "type": "integer"
+                },
+                "knowledge_base_id": {
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -1136,6 +2091,77 @@
                 }
             }
         },
+        "schema.KnowledgeBase": {
+            "type": "object",
+            "properties": {
+                "archived_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.KnowledgeBaseForm": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 2048
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 128
+                }
+            }
+        },
+        "schema.Message": {
+            "type": "object",
+            "properties": {
+                "citations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.Citation"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "conversation_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "run_id": {
+                    "type": "string"
+                }
+            }
+        },
         "schema.NotificationTestResult": {
             "type": "object",
             "properties": {
@@ -1303,6 +2329,141 @@
                 }
             }
         },
+        "schema.Run": {
+            "type": "object",
+            "properties": {
+                "completed_at": {
+                    "type": "string"
+                },
+                "conversation_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "error_summary": {
+                    "type": "string"
+                },
+                "final_message": {
+                    "$ref": "#/definitions/schema.Message"
+                },
+                "final_message_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "input_tokens": {
+                    "type": "integer"
+                },
+                "knowledge_base_id": {
+                    "type": "string"
+                },
+                "output_tokens": {
+                    "type": "integer"
+                },
+                "revision_count": {
+                    "type": "integer"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.RunStep"
+                    }
+                },
+                "total_tokens": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_message_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.RunCreated": {
+            "type": "object",
+            "properties": {
+                "message_id": {
+                    "type": "string"
+                },
+                "run_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.RunForm": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "maxLength": 20000
+                }
+            }
+        },
+        "schema.RunStep": {
+            "type": "object",
+            "properties": {
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "duration_ms": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "input_tokens": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "ordinal": {
+                    "type": "integer"
+                },
+                "output_tokens": {
+                    "type": "integer"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "run_id": {
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "total_tokens": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "schema.SessionStatus": {
             "type": "object",
             "properties": {
@@ -1368,17 +2529,6 @@
                 }
             }
         },
-        "schema.Status": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
         "util.ResponseResult": {
             "type": "object",
             "properties": {
@@ -1393,6 +2543,13 @@
                     "type": "integer"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "AgentBearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

@@ -14,6 +14,7 @@ type Config struct {
 	Middleware Middleware
 	Util       Util
 	Shop       Shop
+	Agent      Agent
 }
 
 type General struct {
@@ -96,6 +97,29 @@ type Shop struct {
 		BaseURL        string `default:"https://sctapi.ftqq.com"`
 		RequestTimeout int    `default:"10"` // seconds
 	}
+}
+
+// Agent contains non-secret settings for the independent knowledge-agent
+// module. OPENAI_API_KEY and AGENT_API_KEY are deliberately read from the
+// process environment because Config.Print serializes this structure.
+type Agent struct {
+	Enable                    bool   `default:"false"`
+	MaxUploadBytes            int64  `default:"10485760"`
+	ChunkSize                 int    `default:"1800"`
+	ChunkOverlap              int    `default:"200"`
+	MaxChunksPerKnowledgeBase int    `default:"10000"`
+	IndexWorkerConcurrency    int    `default:"1"`
+	MaxIndexAttempts          int    `default:"3"`
+	WorkerPollSeconds         int    `default:"2"`
+	RunTimeoutSeconds         int    `default:"180"`
+	RetrievalTopK             int    `default:"8"`
+	CacheTTLSeconds           int    `default:"300"`
+	EmbeddingBatchSize        int    `default:"64"`
+	EmbeddingModel            string `default:"text-embedding-3-small"`
+	SupervisorModel           string `default:"gpt-5.6-terra"`
+	RetrieverModel            string `default:"gpt-5.6-luna"`
+	AnswererModel             string `default:"gpt-5.6-terra"`
+	ReviewerModel             string `default:"gpt-5.6-terra"`
 }
 
 func (c *Config) IsDebug() bool {

@@ -1,8 +1,8 @@
 # 京东自营价格监控服务
 
-这是一个基于 Go、Gin、GORM、Wire、Chromedp 和 Cron 的个人京东自营商品价格监控后端。
+这是一个基于 Go、Gin、GORM、Wire、Chromedp 和 Cron 的个人京东自营商品价格监控后端，并包含一个与 Shop 完全隔离的可选 Agent 知识库模块。
 
-服务只保留 `/api/v1/shop` 领域，不包含用户、角色、菜单、登录、JWT、验证码或 Casbin。所有 Shop API 均不需要认证，请只在可信内网或本机使用，不要直接暴露到公网。
+服务不包含用户、角色、菜单、登录、JWT、验证码或 Casbin。原有 `/api/v1/shop` 领域和无认证行为保持不变，请只在可信内网或本机使用，不要直接暴露到公网；可选的 `/api/v1/agent` 使用独立 Bearer Key，默认关闭。
 
 ## 环境要求
 
@@ -49,6 +49,8 @@ GET /health
 ```bash
 make jd-login
 ```
+
+登录命令会依次确认移动端会话和桌面搜索会话。桌面搜索页必须实际加载出“京东自营”商品后终端才会提示保存成功；如果页面显示网络错误、安全验证或登录页，请在独立 Chrome 窗口中人工处理，项目不会绕过京东验证。
 
 然后提供一个真实的京东分类或搜索列表 HTTPS 地址，一键创建分类、发现商品、采集公开价与结算价，并等待异步任务完成：
 
@@ -127,6 +129,39 @@ go test ./test -run 'TestShop|TestRemovedAdminRoutes'
 go build ./...
 ```
 
+## 独立 Agent 知识库
+
+Agent 位于 `internal/mods/agent`，与 `internal/mods/shop` 并列且不复用 Shop 的模型、路由或业务逻辑。它提供 TXT/Markdown 异步索引、`text-embedding-3-small` 向量检索、Supervisor → Retriever → Answerer → Reviewer 固定工作流、可追溯引用、持久化运行轨迹及断点续读 SSE。
+
+Agent 默认关闭，现有 Shop 启动方式不需要 OpenAI 配置。启用时将 `configs/dev/server.toml` 中的 `[Agent] Enable` 改为 `true`，并在同一终端仅通过环境变量提供两个密钥：
+
+```bash
+export OPENAI_API_KEY="你的 OpenAI API Key"
+export AGENT_API_KEY="为本地 Agent API 设置的独立随机 Key"
+make agent-start
+```
+
+密钥不会写入 TOML、Swagger、数据库、日志或前端构建产物。`AGENT_API_KEY` 只应提交到 `/api/v1/agent` 的 `Authorization: Bearer ...` 请求头；管理页只将它保存在当前标签页的 `sessionStorage`。
+
+管理页地址：
+
+```text
+http://127.0.0.1:8040/agent/
+```
+
+Agent 状态接口 `/api/v1/agent/status` 公开且只返回非敏感配置；其余 Agent API 均要求独立 Bearer Key。Shop API 行为不变，仍不要求 Agent Key。
+
+开发检查：
+
+```bash
+make wire
+make swagger
+go test ./internal/mods/agent/... -count=1
+make agent-ui-check
+```
+
+若服务已启用 Agent 且安全设置了两个环境变量，可运行 `scripts/test_agent_workflow.sh` 完成一次真实的上传、索引、对话、SSE 与引用冒烟测试；该脚本不会回显密钥，普通自动化测试也不会产生 OpenAI 费用。
+
 ## 目录结构
 
 ```text
@@ -140,7 +175,9 @@ internal/mods/shop/dal/      GORM 数据访问
 internal/mods/shop/jd/       京东 Chrome 适配器
 internal/mods/shop/notify/   Server酱通知器
 internal/mods/shop/schema/   Shop 数据模型和请求/响应结构
+internal/mods/agent/         独立 Agent API、业务、数据、LLM 和检索实现
 internal/wirex/              Wire 依赖注入
+web/agent-ui/                Vue 3 + Vite + TypeScript Agent 管理页
 test/                        Shop 集成测试
 ```
 

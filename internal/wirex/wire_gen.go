@@ -9,10 +9,16 @@ package wirex
 import (
 	"context"
 	"github.com/LyricTian/gin-admin/v10/internal/mods"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/agent"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/agent/api"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/agent/biz"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/agent/dal"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/agent/llm"
+	"github.com/LyricTian/gin-admin/v10/internal/mods/agent/retrieval"
 	"github.com/LyricTian/gin-admin/v10/internal/mods/shop"
-	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/api"
-	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/biz"
-	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/dal"
+	api2 "github.com/LyricTian/gin-admin/v10/internal/mods/shop/api"
+	biz2 "github.com/LyricTian/gin-admin/v10/internal/mods/shop/biz"
+	dal2 "github.com/LyricTian/gin-admin/v10/internal/mods/shop/dal"
 	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/jd"
 	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/notify"
 	"github.com/LyricTian/gin-admin/v10/pkg/util"
@@ -25,23 +31,38 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	status := biz.NewStatus()
-	apiStatus := &api.Status{
+	store := &dal.Store{
+		DB: db,
+	}
+	trans := &util.Trans{
+		DB: db,
+	}
+	openAI := llm.NewOpenAI()
+	cache := retrieval.NewCache()
+	eventHub := biz.NewEventHub()
+	service := biz.NewService(store, trans, openAI, cache, eventHub)
+	apiAPI := &api.API{
+		Service: service,
+	}
+	agentAgent := &agent.Agent{
+		DB:      db,
+		API:     apiAPI,
+		Service: service,
+	}
+	status := biz2.NewStatus()
+	apiStatus := &api2.Status{
 		StatusBIZ: status,
 	}
-	store := &dal.Store{
+	dalStore := &dal2.Store{
 		DB: db,
 	}
 	client := jd.NewChromeClient()
 	notifier := notify.NewServerChan()
-	trans := &util.Trans{
-		DB: db,
+	bizService := biz2.NewService(dalStore, client, notifier, trans)
+	management := &api2.Management{
+		Service: bizService,
 	}
-	service := biz.NewService(store, client, notifier, trans)
-	management := &api.Management{
-		Service: service,
-	}
-	scheduler := shop.NewScheduler(service)
+	scheduler := shop.NewScheduler(bizService)
 	shopShop := &shop.Shop{
 		DB:            db,
 		StatusAPI:     apiStatus,
@@ -49,7 +70,8 @@ func BuildInjector(ctx context.Context) (*Injector, func(), error) {
 		Scheduler:     scheduler,
 	}
 	modsMods := &mods.Mods{
-		Shop: shopShop,
+		Agent: agentAgent,
+		Shop:  shopShop,
 	}
 	injector := &Injector{
 		DB: db,

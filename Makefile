@@ -1,4 +1,4 @@
-.PHONY: start build serve serve-d stop price-compare jd-login
+.PHONY: start build serve serve-d stop price-compare jd-login wire swagger agent-ui agent-ui-check agent-start
 
 NOW = $(shell date -u '+%Y%m%d%I%M%S')
 
@@ -53,3 +53,17 @@ price-compare:
 
 jd-login:
 	@bash scripts/price_compare.sh login
+
+agent-ui:
+	@npm --prefix web/agent-ui ci
+	@npm --prefix web/agent-ui run build
+
+agent-ui-check:
+	@npm --prefix web/agent-ui run typecheck
+	@npm --prefix web/agent-ui test
+	@npm --prefix web/agent-ui run build
+
+agent-start: agent-ui
+	@test -n "$$OPENAI_API_KEY" || (echo "OPENAI_API_KEY is required" >&2; exit 1)
+	@test -n "$$AGENT_API_KEY" || (echo "AGENT_API_KEY is required" >&2; exit 1)
+	@go run -ldflags "-X main.VERSION=$(RELEASE_TAG)" main.go start $(START_ARGS)

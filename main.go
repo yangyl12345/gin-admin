@@ -12,9 +12,12 @@ var VERSION = "v10.1.0"
 
 // @title ginadmin
 // @version v10.1.0
-// @description JD self-operated product price monitoring service based on Gin, GORM and Wire DI.
+// @description JD self-operated product price monitoring and independent knowledge Agent service based on Gin, GORM and Wire DI.
 // @schemes http https
 // @basePath /
+// @securityDefinitions.apikey AgentBearer
+// @in header
+// @name Authorization
 func main() {
 	app := cli.NewApp()
 	app.Name = "ginadmin"

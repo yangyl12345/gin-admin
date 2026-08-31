@@ -11,6 +11,126 @@ definitions:
       status:
         type: string
     type: object
+  github_com_LyricTian_gin-admin_v10_internal_mods_agent_schema.Status:
+    properties:
+      embedding_model:
+        type: string
+      enabled:
+        type: boolean
+      models:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      workers_running:
+        type: boolean
+    type: object
+  github_com_LyricTian_gin-admin_v10_internal_mods_shop_schema.Status:
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  schema.Citation:
+    properties:
+      chunk_id:
+        type: string
+      created_at:
+        type: string
+      document_id:
+        type: string
+      document_name:
+        type: string
+      id:
+        type: string
+      line_end:
+        type: integer
+      line_start:
+        type: integer
+      quote:
+        type: string
+      score:
+        type: number
+    type: object
+  schema.Conversation:
+    properties:
+      archived_at:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      knowledge_base_id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  schema.ConversationForm:
+    properties:
+      knowledge_base_id:
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - knowledge_base_id
+    type: object
+  schema.Document:
+    properties:
+      archived_at:
+        type: string
+      created_at:
+        type: string
+      error_summary:
+        type: string
+      id:
+        type: string
+      index_status:
+        type: string
+      indexed_at:
+        type: string
+      knowledge_base_id:
+        type: string
+      media_type:
+        type: string
+      original_name:
+        type: string
+      sha256:
+        type: string
+      size_bytes:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  schema.IngestionJob:
+    properties:
+      attempts:
+        type: integer
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      document_id:
+        type: string
+      error_summary:
+        type: string
+      id:
+        type: string
+      input_tokens:
+        type: integer
+      knowledge_base_id:
+        type: string
+      started_at:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
   schema.JDCategory:
     properties:
       created_at:
@@ -129,6 +249,53 @@ definitions:
       updated_at:
         type: string
     type: object
+  schema.KnowledgeBase:
+    properties:
+      archived_at:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  schema.KnowledgeBaseForm:
+    properties:
+      description:
+        maxLength: 2048
+        type: string
+      name:
+        maxLength: 128
+        type: string
+    required:
+    - name
+    type: object
+  schema.Message:
+    properties:
+      citations:
+        items:
+          $ref: '#/definitions/schema.Citation'
+        type: array
+      content:
+        type: string
+      conversation_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      role:
+        type: string
+      run_id:
+        type: string
+    type: object
   schema.NotificationTestResult:
     properties:
       provider:
@@ -239,6 +406,95 @@ definitions:
       updated_at:
         type: string
     type: object
+  schema.Run:
+    properties:
+      completed_at:
+        type: string
+      conversation_id:
+        type: string
+      created_at:
+        type: string
+      error_summary:
+        type: string
+      final_message:
+        $ref: '#/definitions/schema.Message'
+      final_message_id:
+        type: string
+      id:
+        type: string
+      input_tokens:
+        type: integer
+      knowledge_base_id:
+        type: string
+      output_tokens:
+        type: integer
+      revision_count:
+        type: integer
+      started_at:
+        type: string
+      status:
+        type: string
+      steps:
+        items:
+          $ref: '#/definitions/schema.RunStep'
+        type: array
+      total_tokens:
+        type: integer
+      updated_at:
+        type: string
+      user_message_id:
+        type: string
+    type: object
+  schema.RunCreated:
+    properties:
+      message_id:
+        type: string
+      run_id:
+        type: string
+      status:
+        type: string
+    type: object
+  schema.RunForm:
+    properties:
+      content:
+        maxLength: 20000
+        type: string
+    required:
+    - content
+    type: object
+  schema.RunStep:
+    properties:
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      duration_ms:
+        type: integer
+      id:
+        type: string
+      input_tokens:
+        type: integer
+      model:
+        type: string
+      ordinal:
+        type: integer
+      output_tokens:
+        type: integer
+      role:
+        type: string
+      run_id:
+        type: string
+      started_at:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+      total_tokens:
+        type: integer
+      updated_at:
+        type: string
+    type: object
   schema.SessionStatus:
     properties:
       authenticated:
@@ -284,13 +540,6 @@ definitions:
     - candidate_drop_percent
     - recovery_drop_percent
     type: object
-  schema.Status:
-    properties:
-      name:
-        type: string
-      status:
-        type: string
-    type: object
   util.ResponseResult:
     properties:
       data: {}
@@ -303,11 +552,441 @@ definitions:
     type: object
 info:
   contact: {}
-  description: JD self-operated product price monitoring service based on Gin, GORM
-    and Wire DI.
+  description: JD self-operated product price monitoring and independent knowledge
+    Agent service based on Gin, GORM and Wire DI.
   title: ginadmin
   version: v10.1.0
 paths:
+  /api/v1/agent/conversations:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Conversation'
+                  type: array
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+    post:
+      parameters:
+      - description: conversation
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ConversationForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Conversation'
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/conversations/{id}:
+    delete:
+      parameters:
+      - description: conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+    get:
+      parameters:
+      - description: conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Conversation'
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/conversations/{id}/messages:
+    get:
+      parameters:
+      - description: conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Message'
+                  type: array
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/conversations/{id}/runs:
+    post:
+      parameters:
+      - description: conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: question
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.RunForm'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.RunCreated'
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/documents/{id}:
+    delete:
+      parameters:
+      - description: document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+    get:
+      parameters:
+      - description: document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Document'
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/documents/{id}/reindex:
+    post:
+      parameters:
+      - description: document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.IngestionJob'
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/ingestion-jobs/{id}:
+    get:
+      parameters:
+      - description: ingestion job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.IngestionJob'
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/knowledge-bases:
+    get:
+      parameters:
+      - description: pagination index
+        in: query
+        name: current
+        type: integer
+      - description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.KnowledgeBase'
+                  type: array
+              type: object
+      security:
+      - AgentBearer: []
+      summary: List knowledge bases
+      tags:
+      - AgentAPI
+    post:
+      parameters:
+      - description: knowledge base
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.KnowledgeBaseForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.KnowledgeBase'
+              type: object
+      security:
+      - AgentBearer: []
+      summary: Create knowledge base
+      tags:
+      - AgentAPI
+  /api/v1/agent/knowledge-bases/{id}:
+    delete:
+      parameters:
+      - description: knowledge base ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+    get:
+      parameters:
+      - description: knowledge base ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.KnowledgeBase'
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+    put:
+      parameters:
+      - description: knowledge base ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: knowledge base
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.KnowledgeBaseForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/knowledge-bases/{id}/documents:
+    get:
+      parameters:
+      - description: knowledge base ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Document'
+                  type: array
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: knowledge base ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: UTF-8 .txt or .md file
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/runs/{id}:
+    get:
+      parameters:
+      - description: run ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Run'
+              type: object
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/runs/{id}/events:
+    get:
+      parameters:
+      - description: run ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: last durable event ID
+        in: query
+        name: after
+        type: integer
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE event stream
+          schema:
+            type: string
+      security:
+      - AgentBearer: []
+      tags:
+      - AgentAPI
+  /api/v1/agent/status:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_LyricTian_gin-admin_v10_internal_mods_agent_schema.Status'
+              type: object
+      summary: Get non-sensitive Agent status
+      tags:
+      - AgentAPI
   /api/v1/shop/alerts:
     get:
       parameters:
@@ -879,7 +1558,7 @@ paths:
             - $ref: '#/definitions/util.ResponseResult'
             - properties:
                 data:
-                  $ref: '#/definitions/schema.Status'
+                  $ref: '#/definitions/github_com_LyricTian_gin-admin_v10_internal_mods_shop_schema.Status'
               type: object
       summary: Get shop module status
       tags:
@@ -887,4 +1566,9 @@ paths:
 schemes:
 - http
 - https
+securityDefinitions:
+  AgentBearer:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

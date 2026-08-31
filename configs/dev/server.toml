@@ -46,7 +46,7 @@ Enable = true
 [Shop.JD]
 ChromeExecutable = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 UserDataDir = "data/jd-profile"
-Headless = true
+Headless = false
 DebugArtifacts = false
 MaxProducts = 1000
 PublicWorkers = 4
@@ -67,3 +67,25 @@ AlertDeliverySpec = "@every 5m"
 [Shop.ServerChan]
 BaseURL = "https://sctapi.ftqq.com"
 RequestTimeout = 10
+
+# Agent is disabled by default. When enabled, OPENAI_API_KEY and AGENT_API_KEY
+# must be supplied through the process environment; never put either secret in
+# this file.
+[Agent]
+Enable = true
+MaxUploadBytes = 10485760
+ChunkSize = 1800
+ChunkOverlap = 200
+MaxChunksPerKnowledgeBase = 10000
+IndexWorkerConcurrency = 1
+MaxIndexAttempts = 3
+WorkerPollSeconds = 2
+RunTimeoutSeconds = 180
+RetrievalTopK = 8
+CacheTTLSeconds = 300
+EmbeddingBatchSize = 64
+EmbeddingModel = "text-embedding-3-small"
+SupervisorModel = "gpt-5.6-terra"
+RetrieverModel = "gpt-5.6-luna"
+AnswererModel = "gpt-5.6-terra"
+ReviewerModel = "gpt-5.6-terra"

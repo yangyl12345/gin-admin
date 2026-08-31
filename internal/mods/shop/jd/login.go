@@ -49,9 +49,9 @@ func RunLogin(ctx context.Context) error {
 	if err := chromedp.Run(browserCtx, desktopActions(), chromedp.Navigate(desktopSearchProbeURL)); err != nil {
 		return fmt.Errorf("open JD desktop search login: %w", err)
 	}
-	fmt.Println("如果页面显示京东桌面登录，请继续在当前 Chrome 窗口中人工完成登录。")
+	fmt.Println("如果页面显示京东桌面登录、网络错误或安全验证，请在当前 Chrome 窗口中人工完成；实际加载出京东自营商品后才算成功。")
 	if err := waitForLoginPhase(browserCtx, func(location, body string) bool {
-		return !containsVerification(body, location) && !containsLogin(body, location) && isDesktopSearchLocation(location)
+		return !containsVerification(body, location) && !containsLogin(body, location) && isDesktopSearchLocation(location) && containsSelfOperated(body)
 	}, "JD desktop search login was not completed within 10 minutes"); err != nil {
 		return err
 	}

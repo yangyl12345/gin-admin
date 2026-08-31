@@ -17,6 +17,8 @@
 /ginadmin.lock
 /ginadmin.log
 /release
+/build/dist
+/web/agent-ui/node_modules
 /data
 /internal/test/data
 tmp

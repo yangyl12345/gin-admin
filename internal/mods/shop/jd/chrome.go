@@ -16,6 +16,7 @@ import (
 
 	"github.com/LyricTian/gin-admin/v10/internal/config"
 	"github.com/LyricTian/gin-admin/v10/internal/mods/shop/schema"
+	"github.com/chromedp/cdproto/browser"
 	"github.com/chromedp/cdproto/emulation"
 	"github.com/chromedp/chromedp"
 )
@@ -26,14 +27,14 @@ var (
 	ErrNotSelfOperated  = errors.New("JD product is not confirmed as self-operated")
 	ErrPriceUnavailable = errors.New("JD price is unavailable")
 
-	skuPattern   = regexp.MustCompile(`(?i)(?:product/|item\.jd\.com/)([0-9]{5,})`)
-	pricePattern = regexp.MustCompile(`(?i)(?:应付金额|实付款|到手价|京东价|售价|价格|[¥￥])[^0-9]{0,20}([0-9]+(?:\.[0-9]{1,2})?)`)
+	skuPattern           = regexp.MustCompile(`(?i)(?:product/|item\.jd\.com/)([0-9]{5,})`)
+	pricePattern         = regexp.MustCompile(`(?i)(?:应付金额|实付款|到手价|京东价|售价|价格|[¥￥])[^0-9]{0,20}([0-9]+(?:\.[0-9]{1,2})?)`)
+	chromeProductPattern = regexp.MustCompile(`(?i)(?:Chrome|HeadlessChrome)/([0-9]+)(?:\.[0-9]+){1,3}`)
 )
 
 const mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
 
 const (
-	desktopUserAgent      = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
 	desktopSearchProbeURL = "https://search.jd.com/Search?keyword=%E6%89%8B%E6%9C%BA&enc=utf-8"
 )
 
@@ -150,13 +151,21 @@ func mobileActions() chromedp.Action {
 
 func desktopActions() chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
+		_, product, _, _, _, err := browser.GetVersion().Do(ctx)
+		if err != nil {
+			return fmt.Errorf("read Chrome version: %w", err)
+		}
+		userAgent, err := desktopUserAgentForProduct(product)
+		if err != nil {
+			return err
+		}
 		if err := emulation.SetDeviceMetricsOverride(1280, 900, 1, false).Do(ctx); err != nil {
 			return err
 		}
 		if err := emulation.SetTouchEmulationEnabled(false).Do(ctx); err != nil {
 			return err
 		}
-		if err := emulation.SetUserAgentOverride(desktopUserAgent).Do(ctx); err != nil {
+		if err := emulation.SetUserAgentOverride(userAgent).Do(ctx); err != nil {
 			return err
 		}
 		if err := emulation.SetLocaleOverride().WithLocale("zh_CN").Do(ctx); err != nil {
@@ -164,6 +173,14 @@ func desktopActions() chromedp.Action {
 		}
 		return emulation.SetTimezoneOverride("Asia/Shanghai").Do(ctx)
 	})
+}
+
+func desktopUserAgentForProduct(product string) (string, error) {
+	match := chromeProductPattern.FindStringSubmatch(product)
+	if len(match) != 2 {
+		return "", fmt.Errorf("unsupported Chrome product version %q", product)
+	}
+	return "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + match[1] + ".0.0.0 Safari/537.36", nil
 }
 
 func categoryBrowserActions(raw string) chromedp.Action {
@@ -212,6 +229,7 @@ func (a *ChromeClient) SessionStatus(ctx context.Context) (*schema.SessionStatus
 }
 
 type discoveredDOMItem struct {
+	SKU     string `json:"sku"`
 	Href    string `json:"href"`
 	Name    string `json:"name"`
 	Image   string `json:"image"`
@@ -245,19 +263,53 @@ func (a *ChromeClient) DiscoverCategory(ctx context.Context, category *schema.JD
 		}
 		_ = chromedp.Run(tabCtx, chromedp.Poll(`(() => {
   const body = document.body && document.body.innerText || '';
-  const hasProduct = Array.from(document.querySelectorAll('a[href]')).some(a => /item\.jd\.com|item\.m\.jd\.com|\/product\/[0-9]+/.test(a.href || ''));
+  const hasProduct = Array.from(document.querySelectorAll('a[href]')).some(a => {
+    const href = a.href || '';
+    return /item\.jd\.com|item\.m\.jd\.com|\/product\/[0-9]+/.test(href) ||
+      (/chat\.jd\.com\/index\.action/i.test(href) && /[?&]pid=[0-9]{5,}/.test(href));
+  });
   return hasProduct || /login|passport|captcha|verify/i.test(location.href) || /安全验证|滑动验证|验证码|登录京东|请先登录/.test(body);
-})()`, nil, chromedp.WithPollingInterval(500*time.Millisecond), chromedp.WithPollingTimeout(15*time.Second)))
+})()`, nil, chromedp.WithPollingInterval(500*time.Millisecond), chromedp.WithPollingTimeout(30*time.Second)))
 		var body string
+		var searchAccessRejected bool
 		err = chromedp.Run(tabCtx,
 			chromedp.Location(&location),
 			chromedp.Text("body", &body, chromedp.ByQuery),
-			chromedp.Evaluate(`(() => Array.from(document.querySelectorAll('a[href]')).map(a => {
-  const href = a.href || '';
+			chromedp.Evaluate(`(() => {
+  const decodeValue = value => {
+    if (!value) return '';
+    try { return decodeURIComponent(value); } catch (_) { return value; }
+  };
+  return Array.from(document.querySelectorAll('a[href]')).map(a => {
+  const originalHref = a.href || '';
+  let parsed;
+  try { parsed = new URL(originalHref, location.href); } catch (_) { return null; }
+  const directMatch = originalHref.match(/(?:product\/|item\.jd\.com\/)([0-9]{5,})/i);
+  const isSearchChat = parsed.hostname.toLowerCase() === 'chat.jd.com' &&
+    parsed.pathname.toLowerCase().endsWith('/index.action') &&
+    parsed.searchParams.get('entry') === 'jd_search';
+  const chatSKU = isSearchChat ? (parsed.searchParams.get('pid') || '') : '';
+  const sku = directMatch ? directMatch[1] : (/^[0-9]{5,}$/.test(chatSKU) ? chatSKU : '');
+  if (!sku) return null;
   const box = a.closest('li,[class*="item"],[class*="product"],[class*="goods"]') || a.parentElement;
   const img = a.querySelector('img') || (box && box.querySelector('img'));
-  return {href, name: (a.innerText || (img && img.alt) || '').trim(), image: img ? (img.currentSrc || img.src || '') : '', context: box ? (box.innerText || '').slice(0, 1000) : ''};
-}).filter(x => /item\.jd\.com|item\.m\.jd\.com|\/product\/[0-9]+/.test(x.href)))()`, &items),
+  const chatName = decodeValue(parsed.searchParams.get('wname'));
+  const chatSeller = decodeValue(parsed.searchParams.get('seller'));
+  const name = (chatName || a.innerText || (img && img.alt) || '').trim();
+  const context = [box && box.innerText || '', chatSeller, chatName].filter(Boolean).join('\n').slice(0, 2000);
+  return {
+    sku,
+    href: directMatch ? originalHref : 'https://item.jd.com/' + sku + '.html',
+    name,
+    image: img ? (img.currentSrc || img.src || '') : '',
+    context,
+  };
+}).filter(Boolean);
+})()`, &items),
+			chromedp.Evaluate(`(() => performance.getEntriesByType('resource').some(entry =>
+  /functionId=pc_search_searchWare/.test(entry.name || '') &&
+  (entry.responseStatus === 401 || entry.responseStatus === 403)
+))()`, &searchAccessRejected),
 		)
 		cancel()
 		if err != nil {
@@ -272,14 +324,20 @@ func (a *ChromeClient) DiscoverCategory(ctx context.Context, category *schema.JD
 		if containsLogin(body, location) {
 			return nil, ErrLoginRequired
 		}
+		if searchAccessRejected {
+			return nil, fmt.Errorf("%w: JD desktop search API rejected this session; run make jd-login and complete desktop verification", ErrLoginRequired)
+		}
 		if len(items) == 0 {
 			if page == 1 {
-				return nil, fmt.Errorf("%w: no JD product links found at %s", ErrPriceUnavailable, location)
+				return nil, fmt.Errorf("%w: no JD product cards found at %s", ErrPriceUnavailable, location)
 			}
 			break
 		}
 		for _, item := range items {
-			sku := parseSKU(item.Href)
+			sku := item.SKU
+			if sku == "" {
+				sku = parseSKU(item.Href)
+			}
 			if sku == "" || !containsSelfOperated(item.Context) {
 				continue
 			}
@@ -498,6 +556,15 @@ func parseSKU(raw string) string {
 	if len(m) > 1 {
 		return m[1]
 	}
+	u, err := url.Parse(raw)
+	if err == nil {
+		pid := u.Query().Get("pid")
+		if len(pid) >= 5 {
+			if _, err := strconv.ParseUint(pid, 10, 64); err == nil {
+				return pid
+			}
+		}
+	}
 	return ""
 }
 
@@ -523,7 +590,20 @@ func withPage(raw string, page int) (string, error) {
 		return "", err
 	}
 	q := u.Query()
-	q.Set("page", strconv.Itoa(page))
+	if strings.EqualFold(u.Hostname(), "search.jd.com") {
+		if page <= 1 {
+			if !q.Has("page") && !q.Has("s") {
+				return raw, nil
+			}
+			q.Del("page")
+			q.Del("s")
+		} else {
+			q.Set("page", strconv.Itoa(page*2-1))
+			q.Set("s", strconv.Itoa((page-1)*60+1))
+		}
+	} else {
+		q.Set("page", strconv.Itoa(page))
+	}
 	u.RawQuery = q.Encode()
 	return u.String(), nil
 }

@@ -1,6 +1,9 @@
 package jd
 
-import "testing"
+import (
+	"net/url"
+	"testing"
+)
 
 func TestParseYuanToFen(t *testing.T) {
 	tests := []struct {
@@ -29,6 +32,9 @@ func TestParseSKU(t *testing.T) {
 	if got := parseSKU("https://item.jd.com/987654.html"); got != "987654" {
 		t.Fatalf("parseSKU() = %s", got)
 	}
+	if got := parseSKU("https://chat.jd.com/index.action?entry=jd_search&pid=100278222022"); got != "100278222022" {
+		t.Fatalf("parseSKU() = %s", got)
+	}
 }
 
 func TestContainsLogin(t *testing.T) {
@@ -46,6 +52,67 @@ func TestDesktopSearchLocation(t *testing.T) {
 	}
 	if isDesktopSearchLocation("https://passport.jd.com/new/login.aspx") {
 		t.Fatal("desktop JD login URL was recognized as search")
+	}
+}
+
+func TestDesktopUserAgentForProduct(t *testing.T) {
+	got, err := desktopUserAgentForProduct("Chrome/152.0.7977.64")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
+	if got != want {
+		t.Fatalf("desktopUserAgentForProduct() = %q; want %q", got, want)
+	}
+	if _, err := desktopUserAgentForProduct("Firefox/150.0"); err == nil {
+		t.Fatal("desktopUserAgentForProduct() accepted an unsupported browser product")
+	}
+}
+
+func TestWithPage(t *testing.T) {
+	original := "https://search.jd.com/Search?keyword=phone&enc=utf-8"
+	preserved, err := withPage(original, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if preserved != original {
+		t.Fatalf("first search page URL was rewritten: got %s, want %s", preserved, original)
+	}
+
+	first, err := withPage("https://search.jd.com/Search?keyword=phone&enc=utf-8&page=1&s=61", 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstURL, err := url.Parse(first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if firstURL.Query().Has("page") || firstURL.Query().Has("s") {
+		t.Fatalf("first search page retained pagination parameters: %s", first)
+	}
+
+	second, err := withPage("https://search.jd.com/Search?keyword=phone&enc=utf-8", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondURL, err := url.Parse(second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if secondURL.Query().Get("page") != "3" || secondURL.Query().Get("s") != "61" {
+		t.Fatalf("second search page parameters are incorrect: %s", second)
+	}
+
+	listPage, err := withPage("https://list.jd.com/list.html?cat=9987,653,655", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	listURL, err := url.Parse(listPage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if listURL.Query().Get("page") != "2" {
+		t.Fatalf("list page parameter is incorrect: %s", listPage)
 	}
 }
 
